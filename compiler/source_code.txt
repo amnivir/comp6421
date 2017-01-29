@@ -1,0 +1,5 @@
+void functionA()
+{
+int x;
+x=10;
+}
