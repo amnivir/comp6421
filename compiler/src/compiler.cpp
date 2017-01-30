@@ -22,7 +22,7 @@ int main(){
 
     std::list<std::string> rawTokenList;
     std::string srcFileName = "source_code.txt";
-    Lex l("x=10");
+    Lex l("a=1");
     createListOfRawTokensFromFile(rawTokenList, srcFileName);
 
     l.findTokens();

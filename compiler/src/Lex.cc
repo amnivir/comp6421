@@ -32,11 +32,15 @@ char Lex::nextChar()
 
 void Lex::backupChar()
 {
+    currentCharIndex--;
 }
 
 bool Lex::isFinalState(int state)
 {
-    return false;
+    if(stateFinalToken.find(state) == stateFinalToken.end())
+        return false;
+    else
+        return true;
 }
 
 void Lex::createToken(int state)
@@ -61,45 +65,67 @@ void Lex::findTokens()
 
     int tokenLength = rawToken.size();
     int count = 0;
-    std::string token = "";
+    std::string token;
     char lookup;
     std::cout<<"RawToken=   "<<rawToken<<std::endl;
+    token.clear();
     do
     {
         lookup = this->nextChar();
-        std::cout<<"Lookup="<<lookup<<std::endl;
+        std::cout<<"Lookup="<<"'"<<lookup<<"'"<<std::endl;
         if(isalpha(lookup))
         {
-            state = transistionTable[regexPosition.find('l')->second - 1][state -1];
-            std::cout<<"Found alpha="<<lookup<<"  state="<<state<<std::endl;
+            std::cout<<"previous state="<<state<<std::endl;
+            std::cout<<"regexPosition="<<regexPosition.find('l')->second<<std::endl;
+            state = transistionTable[state -1][regexPosition.find('l')->second - 1];
+            std::cout<<"Found alpha="<<lookup<<"Current  state="<<state<<std::endl;
         }
 
         else if(isdigit(lookup))
         {
-            state = transistionTable[regexPosition.find('d')->second - 1][state -1];
-            std::cout<<"Found digit="<<lookup<<"  state="<<state<<std::endl;
+            std::cout<<"previous state="<<state<<std::endl;
+            std::cout<<"regexPosition="<<regexPosition.find('d')->second<<std::endl;
+            state = transistionTable[state -1][regexPosition.find('d')->second - 1];
+            std::cout<<"Found digit="<<lookup<<"Current  state="<<state<<std::endl;
         }
 
         else if(lookup =='{' || lookup =='}' ||lookup =='(' ||lookup =='*' ||
                 lookup ==')' ||lookup ==':' ||lookup == '=' ||lookup =='<' || lookup =='>')
         {
+            std::cout<<"previous state="<<state<<std::endl;
+            std::cout<<"regexPosition="<<regexPosition.find(lookup)->second<<std::endl;
             state = transistionTable[state -1][regexPosition.find(lookup)->second - 1];
-            std::cout<<"Found alpha_numeric="<<lookup<<"  state="<<state<<std::endl;
+            std::cout<<"Found alpha_numeric="<<lookup<<"Current state="<<state<<std::endl;
         }
 
+//        //Handle error
+//        else
+//        {
+//            std::cout<<"Invalid Token";
+//        }
 
-        else
+        if(isFinalState(state) || lookup == '\0')
         {
-            std::cout<<"Invalid Token";
+            std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
+            tokenList.push_back(token);
+
+            token.clear();
+            if(charBackTrack.find(state)->second == 'y')
+            {
+                std::cout<<"Backing one character!"<<std::endl;
+                backupChar();
+                continue;
+            }
         }
 
-        if(isFinalState(state))
-        {
+        token += lookup;
 
-        }
-
-        //std::cout<<this->nextChar();
         count++;
     }
-    while(count<tokenLength);
+    while(lookup!='\0');
+
+    for(auto &token:tokenList)
+    {
+        std::cout<<"Valid Token:"<<token<<std::endl;
+    }
 }
