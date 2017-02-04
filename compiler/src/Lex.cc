@@ -5,8 +5,12 @@
  *      Author: eshinig
  */
 
-#include "Lex.hh"
+#include "../src/Lex.hh"
 
+Lex::Lex()
+{
+
+}
 Lex::Lex(std::string rawToken)
 {
     currentCharIndex = 0;
@@ -43,9 +47,9 @@ bool Lex::isFinalState(int state)
         return true;
 }
 
-void Lex::createToken(int state)
+std::string Lex::createToken(int state)
 {
-
+    return stateFinalToken.find(state)->second;
 }
 //    nextToken()
 //      state = 1
@@ -106,9 +110,15 @@ void Lex::findTokens()
 
         if(isFinalState(state) || lookup == '\0')
         {
+            //Create Token
             std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
             tokenList.push_back(token);
+            TokenDS tokenStructure;
 
+            tokenStructure.lineNum =1;
+            tokenStructure.type = createToken(state);
+            tokenStructure.value = token;
+            tokenListDS.push_back(tokenStructure);
             token.clear();
             if(charBackTrack.find(state)->second == 'y')
             {
@@ -124,8 +134,8 @@ void Lex::findTokens()
     }
     while(lookup!='\0');
 
-    for(auto &token:tokenList)
+    for(auto &token:tokenListDS )
     {
-        std::cout<<"Valid Token:"<<token<<std::endl;
+        std::cout<<"Valid Token: Token type "<<token.type<<"  Token Value="<<token.value<<std::endl;
     }
 }

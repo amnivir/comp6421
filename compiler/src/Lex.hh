@@ -9,22 +9,33 @@
 #include <string.h>
 #include <iostream>
 #include <sstream>
+
 #ifndef LEX_HH_
 #define LEX_HH_
+
+struct TokenDS
+{
+    std::string type; //TODO make this enum type
+    std::string value;
+    int lineNum;
+
+};
 
 class Lex{
 
 public:
+    Lex();
     Lex(std::string rawToken);
     std::string rawToken;
     std::string nextToken(); // to be called by syntatic analyzer
     std::list<std::string> tokenList;//TODO to be removed
+    std::list<TokenDS> tokenListDS;//TODO to be removed
     int table(int state,int colomn);
     int currentCharIndex;
     char nextChar();
     void backupChar();
     bool isFinalState(int state);
-    void createToken(int state);
+    std::string createToken(int state);
     void findTokens();
     std::map<char, int> regexPosition
     {

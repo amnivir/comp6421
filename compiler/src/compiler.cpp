@@ -7,13 +7,13 @@
 //============================================================================
 
 // simple_example_1.cpp
-#include "Lex.hh"
-
 #include<iostream>
 #include<boost/tokenizer.hpp>
 #include<string>
 #include<fstream>
 #include<list>
+
+#include "../src/Lex.hh"
 
 void lex(std::string tok);
 
