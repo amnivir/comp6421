@@ -78,6 +78,26 @@ TEST_F(LexTest,OperatorLessEqual)
     l.printTokenDataStruct();
 }
 
+TEST_F(LexTest,OperatorLess)
+{
+
+    l.rawToken = "a<1";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),3);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "<") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,OperatorGreater)
+{
+    l.rawToken = "a123>b12333";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),3);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), ">") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
 
 TEST_F(LexTest,OperatorMoreEqualWithSpace)
 {
@@ -116,6 +136,97 @@ TEST_F(LexTest,DivMulOperator)
     l.printTokenDataStruct();
 }
 
+TEST_F(LexTest,CurlyBrackets)
+{
+    l.rawToken = "{ ab21==10 }";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),5);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "{") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "}") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,ParenthesisBrackets)
+{
+    l.rawToken = "( ab21 == 10 )";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),5);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "(") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), ")") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "==") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,KeywordIF)
+{
+    l.rawToken = "if( ab21 <= 10 )";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),6);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "(") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), ")") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "<=") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,KeywordINT)
+{
+    l.rawToken = "int x = 10 ;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),5);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "int") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "=") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "10") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,Float_1)
+{
+    l.rawToken = " int x =1.0 ;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),5);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "int") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "=") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "1.0") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,Float_2)
+{
+    l.rawToken = " a = .0001 ;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),4);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "=") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), ".0001") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,SqreBracket)
+{
+    l.rawToken = " int a[100] ;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),6);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "[") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "]") != l.tokenList.end());
+        ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
 
 TEST_F(LexTest,mainDriver)
 {

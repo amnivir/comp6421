@@ -7,10 +7,11 @@
 
 #include <LexicalAnalyzer.hh>
 
+
 Lex::Lex()
 {
- lineNumber = 1;
- currentCharIndex = 0;
+    lineNumber = 1;
+    currentCharIndex = 0;
 }
 Lex::Lex(std::string rawToken, int lineNumber)
 {
@@ -59,14 +60,30 @@ bool Lex::isFinalState(int state)
  * Error handling is done here, if ';' is missing then check if the last state is
  * letter or digit
  */
-std::string Lex::createToken(int state)
+std::string Lex::createToken(int state, std::string& token)
 {
     if(state == 4)
         state = 5;
 
     else if(state == 2)
         state = 3;
+
+    /**
+     * ID could be a keyword
+     */
+    else if(state == 3)
+    {
+        for (auto &keyword : this->keywords )
+            if(keyword == token)
+            {
+                std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<
+                        " converted to Keyword"<<std::endl;
+                return "keyword";
+            }
+    }
+
     std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<std::endl;
+
     return stateFinalToken.find(state)->second;
 }
 
@@ -87,8 +104,9 @@ int Lex::charType(char lookup, int state)
         std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (lookup == '{' || lookup == '}' || lookup == '(' || lookup == '*' || lookup == ')'
-            || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
-            || lookup == '+' || lookup == '/' || lookup == '-')
+            || lookup == '[' || lookup == ']'|| lookup == ' '
+                    || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
+                            || lookup == '+' || lookup == '/' || lookup == '-')
     {
         std::cout << "previous state=" << state << std::endl;
         std::cout << "regexPosition=" << regexPosition.find(lookup)->second << std::endl;
@@ -200,18 +218,19 @@ void Lex::findTokens()
         std::cout<<"Lookup="<<"'"<<lookup<<"'"<<std::endl;
         std::cout<<"Token="<<"'"<<token<<"'"<<std::endl;
         state = charType(lookup, state);
+        bool isFinalStateBool = isFinalState(state);
 
-        if((isFinalState(state) || lookup == '\0') && !token.empty())
+        if((isFinalStateBool || lookup == '\0') && !token.empty())
         {
-            if(token == "<" || token == ">" )
+            if((token == "<" || token == ">") && lookup == '='  )
             {
                 token += lookup;
             }
             std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
             std::cout<<"Token State='"<<state<<"'"<<std::endl;
-            std::cout<<"Token State='"<<createToken(state)<<"'"<<std::endl;
+            std::cout<<"Token State='"<<createToken(state,token)<<"'"<<std::endl;
             tokenList.push_back(token);
-            buildTokenDataStructureAndAddToList(token,createToken(state));
+            buildTokenDataStructureAndAddToList(token,createToken(state,token));
             token.clear();
             if(charBackTrack.find(state)->second == 'y')
             {
@@ -222,22 +241,23 @@ void Lex::findTokens()
             }
             state = 1;
         }
-        if(isFinalState(state)  && token.empty() && lookup!= '\0')
+        else if(isFinalStateBool  && token.empty() && lookup!= '\0')
         {
-            std::cout<<"Pushing Token='"<<lookup<<"'"<<std::endl;
+            std::string lookupStr(std::string(1,lookup));
+            std::cout<<"Pushing loookup='"<<lookup<<"'"<<std::endl;
             std::cout<<"Token State='"<<state<<"'"<<std::endl;
-            std::cout<<"Token State='"<<createToken(state)<<"'"<<std::endl;
-            tokenList.push_back(std::string(1,lookup));
-            buildTokenDataStructureAndAddToList(token,createToken(state));
+            std::cout<<"Token State='"<<createToken(state,lookupStr)<<"'"<<std::endl;
+            tokenList.push_back(lookupStr);
+            buildTokenDataStructureAndAddToList(std::string(1,lookup),createToken(state,lookupStr));
             state = 1;
             continue;
         }
         else if(lookup!=' ') //ignore spaces
         {
             token += lookup;
+            std::cout<<"Concat lookup and previous token! Token="<<token<<std::endl;
         }
     }
     while(lookup!='\0');
 
-    printTokens();
 }
