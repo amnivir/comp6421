@@ -14,12 +14,15 @@
 
 enum TokenType
 {
-    ID,
-    NUM,
-    COMPARATOR,
-    ASSIGNMENT,
-    PUNCTUATION,
-    BRACKETS
+    ID, // x,y
+    NUM, // 10,20
+    KEYWORD, //if , else , int , float
+    OPERATOR, //+,-,/,*
+    COMPARATOR,//==,<=,>=
+    ASSIGNMENT,//=
+    PUNCTUATION,//;
+    BRACKETS,// { [ ( ) ] }
+    ERROR// any thing other then above
 };
 
 struct TokenDS
@@ -37,7 +40,7 @@ class Lex{
 
 public:
     Lex();
-    Lex(std::string rawToken);
+    Lex(std::string rawToken, int lineNumber);
     std::string rawToken;
     std::string nextToken(); // to be called by syntatic analyzer
     std::list<std::string> tokenList;//TODO to be removed
@@ -45,6 +48,7 @@ public:
     std::list<std::string> keywords {
         "if", "then", "else", "for", "class", "and", "int", "not", "float", "or", "get", "put",
         "return", "program" };
+    int lineNumber;
     int table(int state,int colomn);
     int currentCharIndex;
     char nextChar();
@@ -52,6 +56,9 @@ public:
     bool isFinalState(int state);
     std::string createToken(int state);
     void findTokens();
+    std::string convertEnumToString(const TokenType&  type);
+    void printTokens();
+    void printTokenDataStruct();
     std::map<char, int> regexPosition
     {
                 std::make_pair('l',1),
@@ -114,9 +121,9 @@ public:
 //State          // l  d  {  }  ( *  )   : =  <  >  sp  ;
 /*1*/            { 2, 4, 6,20, 8,20,20,13,25,15,18, 1, 27},
 /*2*/            { 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 },
-/*3*/            { 1, 1, 1, 1, 1, 1, 1, 1,25, 1, 1, 1, 1 },
+/*3*/            { 1, 1, 1, 1, 1, 1, 1, 1,25, 1, 1, 1, 27 },
 /*4*/            { 5, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },
-/*5*/            { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+/*5*/            { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27 },
 /*6*/            { 6, 6, 6, 7, 6, 6, 6, 6, 6, 6, 6, 6, 1 },
 /*7*/            { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
 /*8*/            { 9, 9, 9, 9, 9,10, 9, 9, 9, 9, 9, 9, 1 },
@@ -143,6 +150,7 @@ public:
 
 private:
     int charType(char lookup, int state);
+    void buildTokenDataStructureAndAddToList(const std::string& token, const std::string& tokenType);
 };
 
 

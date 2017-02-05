@@ -6,18 +6,34 @@
  */
 #include <LexicalAnalyzer.hh>
 #include "gtest/gtest.h"
+#include<iostream>
+#include<boost/tokenizer.hpp>
+#include<string>
+#include<fstream>
+#include<list>
 #include <algorithm>
 
 class LexTest: public ::testing::Test
 {
 public:
     Lex l;
+
+    LexTest( ) {
+     }
+
+     void SetUp( ) {
+         l.currentCharIndex = 0;
+     }
+
+     void TearDown( ) {
+          }
+
 };
 
 TEST_F(LexTest,Assignment)
 {
 
-    l.currentCharIndex = 0;
+
     l.rawToken = "a=10;";
     l.findTokens();
 
@@ -30,64 +46,79 @@ TEST_F(LexTest,Assignment)
     token = (std::find(l.tokenList.begin(), l.tokenList.end(), "10") != l.tokenList.end());
     ASSERT_TRUE(token);
     token = (std::find(l.tokenList.begin(), l.tokenList.end(), ";") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
 }
 
 TEST_F(LexTest,LetterDigitAssignment)
 {
 
-    l.currentCharIndex = 0;
-    l.rawToken = "a1=1;";
+    l.rawToken = "aaaa34=34654;";
     l.findTokens();
 
 
     ASSERT_EQ(l.tokenList.size(),4);
-    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "a1") != l.tokenList.end());
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "aaaa34") != l.tokenList.end());
     ASSERT_TRUE(token);
     token = (std::find(l.tokenList.begin(), l.tokenList.end(), "=") != l.tokenList.end());
     ASSERT_TRUE(token);
-    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "1") != l.tokenList.end());
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "34654") != l.tokenList.end());
     ASSERT_TRUE(token);
-}
-
-TEST_F(LexTest,identifier)
-{
-
-    l.currentCharIndex = 0;
-    l.rawToken = "aaaa34";
-    l.findTokens();
-    ASSERT_EQ(l.tokenList.size(),1);
-    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "aaaa34") != l.tokenList.end());
-    ASSERT_TRUE(token);
-}
-
-TEST_F(LexTest,Number)
-{
-
-    l.currentCharIndex = 0;
-    l.rawToken = "34654";
-    l.findTokens();
-    ASSERT_EQ(l.tokenList.size(),1);
-    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "34654") != l.tokenList.end());
-    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
 }
 
 TEST_F(LexTest,OperatorLessEqual)
 {
 
-    l.currentCharIndex = 0;
     l.rawToken = "a<=1";
     l.findTokens();
     ASSERT_EQ(l.tokenList.size(),3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "<=") != l.tokenList.end());
     ASSERT_TRUE(token);
+    l.printTokenDataStruct();
 }
 
 TEST_F(LexTest,OperatorMoreEqualWithSpace)
 {
-    l.currentCharIndex = 0;
     l.rawToken = "a >= 1";
     l.findTokens();
     ASSERT_EQ(l.tokenList.size(),3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), " ") != l.tokenList.end());
     ASSERT_FALSE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), ">=") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,mainDriver)
+{
+    using namespace std;
+    using namespace boost;
+
+    string line;
+    int lineNumCount = 1;
+    ifstream myfile ("source_code.txt");
+    char_separator<char> sept {" "};
+    std::list <std::string> rawTokensFromInputFile;
+    std::string srcFileName = "source_code.txt";
+
+    typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+    if (myfile.is_open())
+    {
+        while ( getline (myfile,line) )
+        {
+            tokenizer tokens{line,sept};
+            for(const auto &token : tokens)
+            {
+                Lex lex(token,lineNumCount);
+                lex.findTokens();
+                lex.printTokenDataStruct();
+            }
+            lineNumCount++;
+        }
+    }
+    else {
+        cout<<"File cannot be opened";
+    }
+    myfile.close();
 }
