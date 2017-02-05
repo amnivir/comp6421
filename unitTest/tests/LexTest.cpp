@@ -19,14 +19,14 @@ public:
     Lex l;
 
     LexTest( ) {
-     }
+    }
 
-     void SetUp( ) {
-         l.currentCharIndex = 0;
-     }
+    void SetUp( ) {
+        l.currentCharIndex = 0;
+    }
 
-     void TearDown( ) {
-          }
+    void TearDown( ) {
+    }
 
 };
 
@@ -78,6 +78,7 @@ TEST_F(LexTest,OperatorLessEqual)
     l.printTokenDataStruct();
 }
 
+
 TEST_F(LexTest,OperatorMoreEqualWithSpace)
 {
     l.rawToken = "a >= 1";
@@ -89,6 +90,32 @@ TEST_F(LexTest,OperatorMoreEqualWithSpace)
     ASSERT_TRUE(token);
     l.printTokenDataStruct();
 }
+
+TEST_F(LexTest,AddSubOperator)
+{
+    l.rawToken = "a=b+20-10;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),8);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "+") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "-") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
+
+TEST_F(LexTest,DivMulOperator)
+{
+    l.rawToken = "a=b*10/20;";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(),8);
+    bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "/") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    token = (std::find(l.tokenList.begin(), l.tokenList.end(), "*") != l.tokenList.end());
+    ASSERT_TRUE(token);
+    l.printTokenDataStruct();
+}
+
 
 TEST_F(LexTest,mainDriver)
 {

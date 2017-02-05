@@ -9,7 +9,8 @@
 
 Lex::Lex()
 {
-
+ lineNumber = 1;
+ currentCharIndex = 0;
 }
 Lex::Lex(std::string rawToken, int lineNumber)
 {
@@ -43,9 +44,15 @@ void Lex::backupChar()
 bool Lex::isFinalState(int state)
 {
     if(stateFinalToken.find(state) == stateFinalToken.end())
+    {
+        std::cout<<"NOT final State! state="<<state<<std::endl;
         return false;
+    }
     else
+    {
+        std::cout<<"Final state! state="<<state<<std::endl;
         return true;
+    }
 }
 
 /*
@@ -80,14 +87,14 @@ int Lex::charType(char lookup, int state)
         std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (lookup == '{' || lookup == '}' || lookup == '(' || lookup == '*' || lookup == ')'
-            || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';')
+            || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
+            || lookup == '+' || lookup == '/' || lookup == '-')
     {
         std::cout << "previous state=" << state << std::endl;
         std::cout << "regexPosition=" << regexPosition.find(lookup)->second << std::endl;
         state = transistionTable[state - 1][regexPosition.find(lookup)->second - 1];
         std::cout << "Found alpha_numeric=" << lookup << "Current state=" << state << std::endl;
     }
-
     return state;
 }
 
@@ -107,7 +114,7 @@ void Lex::buildTokenDataStructureAndAddToList(const std::string& token, const st
     else if( tokenType == "assign")
         tokenStructure.type = ASSIGNMENT;
 
-    else if( tokenType == "operator")
+    else if( tokenType == "mul" || tokenType == "div" ||tokenType == "add" ||tokenType == "div")
         tokenStructure.type = OPERATOR;
 
     else if( tokenType == "gt" || tokenType == "lt" || tokenType == "lesseq" || tokenType == "moreeq"
@@ -123,7 +130,6 @@ void Lex::buildTokenDataStructureAndAddToList(const std::string& token, const st
 
     else
         tokenStructure.type = ERROR;
-
 
     tokenStructure.lineNum = this->lineNumber;
     tokenStructure.value = token;
@@ -215,6 +221,16 @@ void Lex::findTokens()
                 continue;
             }
             state = 1;
+        }
+        if(isFinalState(state)  && token.empty() && lookup!= '\0')
+        {
+            std::cout<<"Pushing Token='"<<lookup<<"'"<<std::endl;
+            std::cout<<"Token State='"<<state<<"'"<<std::endl;
+            std::cout<<"Token State='"<<createToken(state)<<"'"<<std::endl;
+            tokenList.push_back(std::string(1,lookup));
+            buildTokenDataStructureAndAddToList(token,createToken(state));
+            state = 1;
+            continue;
         }
         else if(lookup!=' ') //ignore spaces
         {
