@@ -104,7 +104,7 @@ int Lex::charType(char lookup, int state)
         std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (lookup == '{' || lookup == '}' || lookup == '(' || lookup == '*' || lookup == ')'
-            || lookup == '[' || lookup == ']'|| lookup == ' ' || lookup == ','
+            || lookup == '[' || lookup == ']'|| lookup == ' ' || lookup == ',' || lookup == '.'
                     || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
                             || lookup == '+' || lookup == '/' || lookup == '-')
     {
@@ -145,6 +145,9 @@ void Lex::buildTokenDataStructureAndAddToList(const std::string& token, const st
 
     else if( tokenType == "semicolon")
         tokenStructure.type = PUNCTUATION;
+
+    else if( tokenType == "error")
+        tokenStructure.type = ERROR;
 
     else if( tokenType == "comment")
     {
@@ -188,6 +191,9 @@ std::string Lex::convertEnumToString(const TokenType& type)
     case BRACKETS:// { [ ( ) ] }
         return "Brackets";
 
+    case ERROR:// { [ ( ) ] }
+        return "Error in line";
+
     default:
         return "No Enum Found";
     }
@@ -202,9 +208,9 @@ void Lex::printTokens()
 
 void Lex::printTokenDataStruct()
 {
+    std::cout <<"****************************************************************"<<std::endl;
     for (auto& token : tokenListDS)
     {
-        std::cout <<"****************************************************************"<<std::endl;
         std::cout << "Token Value=" << token.value << std::endl;
         std::cout << "Token Type=" << convertEnumToString(token.type) << std::endl;
         std::cout << "Token Line=" << token.lineNum << std::endl;

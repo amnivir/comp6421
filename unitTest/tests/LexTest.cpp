@@ -266,6 +266,14 @@ TEST_F(LexTest,CommentsBefore)
     l.printTokenDataStruct();
 }
 
+TEST_F(LexTest,ErrorFloat)
+{
+    l.rawToken = "int x =10.a; ";
+    l.findTokens();
+    ASSERT_EQ(l.tokenList.size(), 5);
+    l.printTokenDataStruct();
+}
+
 TEST_F(LexTest,mainDriver)
 {
     using namespace std;
