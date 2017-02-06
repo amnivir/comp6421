@@ -104,7 +104,7 @@ int Lex::charType(char lookup, int state)
         std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (lookup == '{' || lookup == '}' || lookup == '(' || lookup == '*' || lookup == ')'
-            || lookup == '[' || lookup == ']'|| lookup == ' '
+            || lookup == '[' || lookup == ']'|| lookup == ' ' || lookup == ','
                     || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
                             || lookup == '+' || lookup == '/' || lookup == '-')
     {
@@ -145,6 +145,12 @@ void Lex::buildTokenDataStructureAndAddToList(const std::string& token, const st
 
     else if( tokenType == "semicolon")
         tokenStructure.type = PUNCTUATION;
+
+    else if( tokenType == "comment")
+    {
+        std::cout<<"Comment found, Don't build token"<<std::endl;
+        return;
+    }
 
     else
         tokenStructure.type = ERROR;
@@ -198,10 +204,17 @@ void Lex::printTokenDataStruct()
 {
     for (auto& token : tokenListDS)
     {
+        std::cout <<"****************************************************************"<<std::endl;
         std::cout << "Token Value=" << token.value << std::endl;
         std::cout << "Token Type=" << convertEnumToString(token.type) << std::endl;
         std::cout << "Token Line=" << token.lineNum << std::endl;
+        std::cout <<"****************************************************************"<<std::endl;
     }
+}
+
+std::list<TokenDS> Lex::getTokenDSList()
+{
+    return tokenListDS;
 }
 
 void Lex::findTokens()
@@ -229,8 +242,13 @@ void Lex::findTokens()
             std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
             std::cout<<"Token State='"<<state<<"'"<<std::endl;
             std::cout<<"Token State='"<<createToken(state,token)<<"'"<<std::endl;
-            tokenList.push_back(token);
-            buildTokenDataStructureAndAddToList(token,createToken(state,token));
+
+            if (state != 39) // Ignore comments, comment has a state = 39
+            {
+                tokenList.push_back(token);
+                buildTokenDataStructureAndAddToList(token,createToken(state,token));
+            }
+
             token.clear();
             if(charBackTrack.find(state)->second == 'y')
             {
