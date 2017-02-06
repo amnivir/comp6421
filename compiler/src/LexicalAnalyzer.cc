@@ -218,12 +218,30 @@ void Lex::printTokenDataStruct()
     }
 }
 
+void Lex::writeTokenDataStructToFile()
+{
+    std::ofstream myfile;
+    myfile.open ("output.txt");
+    myfile <<"****************************************************************"<<std::endl;
+    for (auto& token : tokenListDS)
+    {
+        myfile << "Token Value=" << token.value << std::endl;
+        myfile << "Token Type=" << convertEnumToString(token.type) << std::endl;
+        myfile << "Token Line=" << token.lineNum << std::endl;
+        myfile <<"****************************************************************"<<std::endl;
+    }
+
+    myfile << "Total Tokens=" << this->getTokenDSList().size();
+
+    myfile.close();
+}
+
 std::list<TokenDS> Lex::getTokenDSList()
 {
     return tokenListDS;
 }
 
-void Lex::findTokens()
+void Lex::findTokenTypeAndBuildList()
 {
     int state = 1;
 

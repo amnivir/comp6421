@@ -8,7 +8,8 @@
 #include <list>
 #include <string.h>
 #include <iostream>
-#include <sstream>
+#include <fstream>
+
 #ifndef LEX_HH_
 #define LEX_HH_
 
@@ -55,11 +56,13 @@ public:
     void backupChar();
     bool isFinalState(int state);
     std::string createToken(int state, std::string& token);
-    void findTokens();
+    void findTokenTypeAndBuildList();
     std::string convertEnumToString(const TokenType&  type);
     void printTokens();
     void printTokenDataStruct();
+    void writeTokenDataStructToFile();
     std::list<TokenDS> getTokenDSList();
+
     std::map<char, int> regexPosition
     {
                 std::make_pair('l',1),

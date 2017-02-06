@@ -37,7 +37,7 @@ TEST_F(LexTest,Assignment)
 {
 
     l.rawToken = "a=10;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
 
     ASSERT_EQ(l.tokenList.size(), 4);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "a") != l.tokenList.end());
@@ -55,7 +55,7 @@ TEST_F(LexTest,LetterDigitAssignment)
 {
 
     l.rawToken = "aaaa34=34654;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
 
     ASSERT_EQ(l.tokenList.size(), 4);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "aaaa34") != l.tokenList.end());
@@ -71,7 +71,7 @@ TEST_F(LexTest,OperatorLessEqual)
 {
 
     l.rawToken = "a<=1";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "<=") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -82,7 +82,7 @@ TEST_F(LexTest,OperatorLess)
 {
 
     l.rawToken = "a<1";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "<") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -92,7 +92,7 @@ TEST_F(LexTest,OperatorLess)
 TEST_F(LexTest,OperatorGreater)
 {
     l.rawToken = "a123>b12333";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), ">") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -102,7 +102,7 @@ TEST_F(LexTest,OperatorGreater)
 TEST_F(LexTest,OperatorMoreEqualWithSpace)
 {
     l.rawToken = "a >= 1";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 3);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), " ") != l.tokenList.end());
     ASSERT_FALSE(token);
@@ -114,7 +114,7 @@ TEST_F(LexTest,OperatorMoreEqualWithSpace)
 TEST_F(LexTest,AddSubOperator)
 {
     l.rawToken = "a=b+20-10;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 8);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "+") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -126,7 +126,7 @@ TEST_F(LexTest,AddSubOperator)
 TEST_F(LexTest,DivMulOperator)
 {
     l.rawToken = "a=b*10/20;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 8);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "/") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -138,7 +138,7 @@ TEST_F(LexTest,DivMulOperator)
 TEST_F(LexTest,CurlyBrackets)
 {
     l.rawToken = "{ ab21==10 }";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "{") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -150,7 +150,7 @@ TEST_F(LexTest,CurlyBrackets)
 TEST_F(LexTest,ParenthesisBrackets)
 {
     l.rawToken = "( ab21 == 10 )";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "(") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -164,7 +164,7 @@ TEST_F(LexTest,ParenthesisBrackets)
 TEST_F(LexTest,KeywordIF)
 {
     l.rawToken = "if( ab21 <= 10 )";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 6);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "(") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -178,7 +178,7 @@ TEST_F(LexTest,KeywordIF)
 TEST_F(LexTest,KeywordINT)
 {
     l.rawToken = "int x = 10 ;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "int") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -192,7 +192,7 @@ TEST_F(LexTest,KeywordINT)
 TEST_F(LexTest,Float_1)
 {
     l.rawToken = " int x =1.0 ;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "int") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -206,7 +206,7 @@ TEST_F(LexTest,Float_1)
 TEST_F(LexTest,Float_2)
 {
     l.rawToken = " a = .0001 ;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 4);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "=") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -219,7 +219,7 @@ TEST_F(LexTest,Float_2)
 TEST_F(LexTest,SqreBracket)
 {
     l.rawToken = " int a[100] ;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 6);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "[") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -231,7 +231,7 @@ TEST_F(LexTest,SqreBracket)
 TEST_F(LexTest,SqreBracketAssignment)
 {
     l.rawToken = " a12[100]=b;";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 7);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), "[") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -243,7 +243,7 @@ TEST_F(LexTest,SqreBracketAssignment)
 TEST_F(LexTest,Comma)
 {
     l.rawToken = "int function(a,b)";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 7);
     bool token = (std::find(l.tokenList.begin(), l.tokenList.end(), ",") != l.tokenList.end());
     ASSERT_TRUE(token);
@@ -253,7 +253,7 @@ TEST_F(LexTest,Comma)
 TEST_F(LexTest,CommentsAfter)
 {
     l.rawToken = "int x =10;/*asdfasdf*/";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     l.printTokenDataStruct();
 }
@@ -261,7 +261,7 @@ TEST_F(LexTest,CommentsAfter)
 TEST_F(LexTest,CommentsBefore)
 {
     l.rawToken = "/*asdfasdf*/int x =10; ";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     l.printTokenDataStruct();
 }
@@ -269,7 +269,7 @@ TEST_F(LexTest,CommentsBefore)
 TEST_F(LexTest,ErrorFloat)
 {
     l.rawToken = "int x =10.a; ";
-    l.findTokens();
+    l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
     l.printTokenDataStruct();
 }
@@ -300,7 +300,7 @@ TEST_F(LexTest,mainDriver)
             for (const auto &token : tokens)
             {
                 Lex lex(token, lineNumCount);
-                lex.findTokens();
+                lex.findTokenTypeAndBuildList();
                 lexAnalyser.tokenListDS.insert(lexAnalyser.tokenListDS.end(),
                         lex.tokenListDS.begin(), lex.tokenListDS.end());
             }
@@ -315,6 +315,8 @@ TEST_F(LexTest,mainDriver)
     lexAnalyser.printTokenDataStruct();
     totalTokensActual = lexAnalyser.getTokenDSList().size();
     std::cout << "Total Tokens=" << totalTokensActual;
+    std::cout<<" Writing to a file"<<std::endl;
+    lexAnalyser.writeTokenDataStructToFile();
     myfile.close();
     ASSERT_EQ(totalTokensActual,totalTokensExpected);
 }
