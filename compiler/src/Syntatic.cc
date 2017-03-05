@@ -44,8 +44,8 @@ void Parser::tableDrivenParserAlgorithm()
     std::cout<<"Test";
     std::cout<<"No. of predictions"<<productions.size()<<std::endl;
     inverseDerivation.push_back("$");
-    inverseDerivation.push_back("E");
-    derivation.push_back("E");
+    inverseDerivation.push_back("prog");
+    derivation.push_back("prog");
     token = input.front();
     while(inverseDerivation.back()!="$")
     {
@@ -71,7 +71,7 @@ void Parser::tableDrivenParserAlgorithm()
             int column = terminalSymbolsMap.find(token)->second;
             int rule = parseTable[row][column];
             std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
-            if( rule < 10) //
+            if( rule < 70) //
             {
 
                 std::list<std::string>::iterator it;
