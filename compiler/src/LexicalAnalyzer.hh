@@ -198,6 +198,4 @@ private:
     void buildTokenDataStructureAndAddToList(const std::string& token, const std::string& tokenType);
 };
 
-
-
 #endif /* LEX_HH_ */

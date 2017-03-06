@@ -6,8 +6,35 @@
  */
 #include "Syntatic.hh"
 
-Parser::Parser(){
 
+Parser::Parser(std::list<TokenDS> tokenDSList)
+{
+    currentTokenIndex = 0;
+    tokenListFromLexicalAnalyser = tokenDSList;
+    this->buildInputFromLex();
+}
+
+void Parser::buildInputFromLex()
+{
+    TokenDS token;
+    std::list<TokenDS>::iterator it;
+    input.clear();
+    while(!tokenListFromLexicalAnalyser.empty())
+    {
+        it = tokenListFromLexicalAnalyser.begin();
+        tokenListFromLexicalAnalyser.pop_front();
+        if(it->type == ID )
+        {
+            input.push_back("id");
+        }
+
+        else if (it->type == NUM )
+        {
+            input.push_back("integer");
+        }
+
+        else input.push_back(it->value);
+    }
 }
 
 bool Parser::isTerminal(std::string& x)
@@ -38,10 +65,28 @@ void Parser::printInverseDerivation()
     std::cout << std::endl;
 }
 
+void Parser::parseTerminalSymbol(const std::string& nonTerminal, std::string& token)
+{
+    std::cout << "Matching token found! " << nonTerminal << std::endl;
+    /*
+     * Found the symbol that was expected.
+     */
+    if (!input.empty())
+    {
+        input.pop_front();
+    }
+    if (!input.empty())
+    {
+        token = input.front();
+    }
+    inverseDerivation.pop_back();
+}
+
 void Parser::tableDrivenParserAlgorithm()
 {
+    std::ofstream myfile;
+    myfile.open ("syntatic_output.txt");
     std::string token;
-    std::cout<<"Test";
     std::cout<<"No. of predictions"<<productions.size()<<std::endl;
     inverseDerivation.push_back("$");
     inverseDerivation.push_back("prog");
@@ -55,13 +100,7 @@ void Parser::tableDrivenParserAlgorithm()
         std::string nonTerminal = inverseDerivation.back();
         if( isTerminal(nonTerminal))
         {
-            std::cout << "Matching token found! " << nonTerminal <<std::endl;
-            /*
-             * Found the symbol that was expected.
-             */
-            input.pop_front();
-            token = input.front();
-            inverseDerivation.pop_back();
+            parseTerminalSymbol(nonTerminal, token);
             //else skip error
         }
         //non terminal
@@ -71,17 +110,21 @@ void Parser::tableDrivenParserAlgorithm()
             int column = terminalSymbolsMap.find(token)->second;
             int rule = parseTable[row][column];
             std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
-            if( rule < 70) //
+            if( rule < ERROR_CODE) //
             {
 
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
+                //std::cout<< "Used Rule:  "<< nonTerminal << " -> ";
+                myfile << nonTerminal << "   ->   " ;
                 for(auto symbol : productions.find(rule)->second)
                 {
-                    std::cout<<"Symbol from Rule= "<<symbol<<std::endl;
+                    //std::cout<<symbol<<"  ";
+                    myfile << symbol ;
                     tmpSymbols.push_back(symbol);
                 }
-
+                //std::cout<<std::endl;
+                myfile << std::endl;
                 inverseDerivation.pop_back();
                 it = std::find(derivation.begin(), derivation.end(), nonTerminal);
                 it = derivation.erase(it);
@@ -98,5 +141,9 @@ void Parser::tableDrivenParserAlgorithm()
             }
         }
     }
+    myfile.close();
+    std::cout<<"Algorithm finished!!!!!!!\n";
+    printDerivation();
+    printInverseDerivation();
 }
 
