@@ -33,7 +33,7 @@ public:
 
 };
 
-TEST_F(LexTest,Assignment)
+TEST_F(LexTest,AssignmentInteger)
 {
 
     l.rawToken = "a=10;";
@@ -49,6 +49,23 @@ TEST_F(LexTest,Assignment)
     token = (std::find(l.tokenList.begin(), l.tokenList.end(), ";") != l.tokenList.end());
     ASSERT_TRUE(token);
     l.printTokenDataStruct();
+
+    std::list<TokenDS>::iterator findIter = l.tokenListDS.begin();
+    std::advance(findIter,2);
+    EXPECT_EQ(findIter->value,"10");
+    EXPECT_EQ(findIter->type,INT_VALUE);
+
+}
+
+TEST_F(LexTest,AssignmentFloat)
+{
+    l.rawToken = "a=10.001;";
+    l.findTokenTypeAndBuildList();
+
+    std::list<TokenDS>::iterator findIter = l.tokenListDS.begin();
+    std::advance(findIter,2);
+    EXPECT_EQ(findIter->value,"10.001");
+    EXPECT_EQ(findIter->type,FLOAT_VALUE);
 }
 
 TEST_F(LexTest,LetterDigitAssignment)

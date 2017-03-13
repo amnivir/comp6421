@@ -19,21 +19,41 @@ void Parser::buildInputFromLex()
     TokenDS token;
     std::list<TokenDS>::iterator it;
     input.clear();
+
+    std::string previousTokenValue = "";
+
     while(!tokenListFromLexicalAnalyser.empty())
     {
         it = tokenListFromLexicalAnalyser.begin();
-        tokenListFromLexicalAnalyser.pop_front();
+
         if(it->type == ID )
         {
             input.push_back("id");
         }
 
-        else if (it->type == NUM )
+        else if (it->type == INT_VALUE || it->type==FLOAT_VALUE )
         {
-            input.push_back("integer");
+            /**
+             *  Make sure that only integer must be inside  indices [ integer ]
+             *  else it does not matter
+             */
+            if(previousTokenValue == "[")
+                input.push_back("intValue");
+
+            else if (it->type == INT_VALUE)
+                input.push_back("intValue");
+            else if (it->type == FLOAT_VALUE)
+                input.push_back("floatValue");// num is both integer and float
         }
 
-        else input.push_back(it->value);
+        else
+        {
+            input.push_back(it->value);
+        }
+
+        previousTokenValue = it->value;
+
+        tokenListFromLexicalAnalyser.pop_front();
     }
 }
 
@@ -87,7 +107,7 @@ void Parser::tableDrivenParserAlgorithm()
     std::ofstream myfile;
     myfile.open ("syntatic_output.txt");
     std::string token;
-    std::cout<<"No. of predictions"<<productions.size()<<std::endl;
+    std::cout<<"No. of predictions="<<productions.size()<<std::endl;
     inverseDerivation.push_back("$");
     inverseDerivation.push_back("prog");
     derivation.push_back("prog");
@@ -115,15 +135,15 @@ void Parser::tableDrivenParserAlgorithm()
 
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
-                //std::cout<< "Used Rule:  "<< nonTerminal << " -> ";
+                std::cout<< "Used Rule:  "<< nonTerminal << " -> ";
                 myfile << nonTerminal << "   ->   " ;
                 for(auto symbol : productions.find(rule)->second)
                 {
-                    //std::cout<<symbol<<"  ";
+                    std::cout<<symbol<<"  ";
                     myfile << symbol ;
                     tmpSymbols.push_back(symbol);
                 }
-                //std::cout<<std::endl;
+                std::cout<<std::endl;
                 myfile << std::endl;
                 inverseDerivation.pop_back();
                 it = std::find(derivation.begin(), derivation.end(), nonTerminal);

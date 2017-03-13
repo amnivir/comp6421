@@ -126,8 +126,23 @@ void Lex::buildTokenDataStructureAndAddToList(const std::string& token, const st
     else if( tokenType == "keyword")
         tokenStructure.type = KEYWORD;
 
+    /**
+     * NUM can be integer or float. Num alone cannot be usefil for assignment 2
+     * check '.' in token if found then it is float else integer
+     */
     else if( tokenType == "num")
-        tokenStructure.type = NUM;
+    {
+        std::string dot = ".";
+        std::size_t found = token.find(dot);
+        if(found != std::string::npos)
+        {
+            tokenStructure.type = FLOAT_VALUE;
+        }
+        else
+        {
+            tokenStructure.type = INT_VALUE;
+        }
+    }
 
     else if( tokenType == "assign")
         tokenStructure.type = ASSIGNMENT;
@@ -172,6 +187,12 @@ std::string Lex::convertEnumToString(const TokenType& type)
 
     case NUM: // 10,20
         return "Number";
+
+    case INT_VALUE:
+        return "intValue";
+
+    case FLOAT_VALUE:
+        return "floatValue";
 
     case KEYWORD:  //if , else , int , float
         return "Keyword";

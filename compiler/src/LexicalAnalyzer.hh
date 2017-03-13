@@ -17,6 +17,9 @@ enum TokenType
 {
     ID, // x,y
     NUM, // 10,20
+    INTEGER,
+    FLOAT_VALUE,
+    INT_VALUE,
     KEYWORD, //if , else , int , float
     OPERATOR, //+,-,/,*
     COMPARATOR,//==,<=,>=
