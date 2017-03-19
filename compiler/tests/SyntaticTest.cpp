@@ -47,15 +47,15 @@ TEST_F(SyntaticTest,classProgramFunction)
      * program { int id [ integer ] ; float id [ integer ] ; } ;
      * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } $
      */
-    EXPECT_EQ(p.input.size(),50);
+    EXPECT_EQ(p.inputSemanticValue.size(),50);
     ASSERT_EQ(p.productions.size(), 93);// based on grammar
 
     //Start parsing
     p.tableDrivenParserAlgorithm();
 
     //At the end of parsing the STACK should have only one element i.e. $
-    EXPECT_EQ(p.inverseDerivation.size(),1);
-    EXPECT_EQ(p.inverseDerivation.front(),"$");
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input -1
     EXPECT_EQ(p.derivation.size(),49);
@@ -93,12 +93,16 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 
     Parser p(l.getTokenDSList());
 
-
-    p.input.push_back("$");
+    SyntaticTokenValue tv;
+    tv.tds.lineNum = 0;
+    tv.tds.type = NONE;
+    tv.tds.value = "$";
+    tv.syntacticValue="$";
+    p.inputSemanticValue.push_back(tv);
 
    //Parser Input contains 49 tokens + '$' as 50th token
 
-    EXPECT_EQ(p.input.size(),50);
+    EXPECT_EQ(p.inputSemanticValue.size(),50);
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
 
@@ -106,8 +110,8 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
     p.tableDrivenParserAlgorithm();
 
     //At the end of parsing the STACK should have only one element i.e. $
-    EXPECT_EQ(p.inverseDerivation.size(),1);
-    EXPECT_EQ(p.inverseDerivation.front(),"$");
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input
     EXPECT_EQ(p.derivation.size(),49);
@@ -140,11 +144,16 @@ TEST_F(SyntaticTest,classProgramFunctionForLexical)
     Parser p(l.getTokenDSList());
 
 
-    p.input.push_back("$");
+    SyntaticTokenValue tv;
+    tv.tds.lineNum = 0;
+    tv.tds.type = NONE;
+    tv.tds.value = "$";
+    tv.syntacticValue="$";
+    p.inputSemanticValue.push_back(tv);
 
    //Parser Input contains 69 tokens + '$' as 70th token
 
-    EXPECT_EQ(p.input.size(),70);
+    EXPECT_EQ(p.inputSemanticValue.size(),70);
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
 
@@ -152,8 +161,8 @@ TEST_F(SyntaticTest,classProgramFunctionForLexical)
     p.tableDrivenParserAlgorithm();
 
     //At the end of parsing the STACK should have only one element i.e. $
-    EXPECT_EQ(p.inverseDerivation.size(),1);
-    EXPECT_EQ(p.inverseDerivation.front(),"$");
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input
     EXPECT_EQ(p.derivation.size(),69);

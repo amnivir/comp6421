@@ -16,16 +16,24 @@
 #ifndef SRC_SYNTATIC_HH_
 #define SRC_SYNTATIC_HH_
 
+struct SymbolInfo
+{
+    //std::string name; // x,program,MyClass
+    std::string kind;// function, class,parameter,variable
+    std::string type;//int,float,class
+    //std::map<std::string, SymbolTabel>* link = nullptr; // link to a new symboltable
+};
+
+struct SyntaticTokenValue
+{
+    TokenDS tds;
+    std::string syntacticValue;
+};
+
 class Parser
 {
 public:
-    Parser(){
-        input=input = {"class","id","{","int","id","[", "intValue","]",";","}",";",
-                "program", "{", "int", "id", "[", "intValue", "]", ";",
-                "float", "id", "[", "intValue", "]", ";", "}" ,";",
-                "float", "id","(","int", "id", "[", "intValue", "]", ")",
-                "{", "float", "id", ";", "return", "(", "intValue" ,"*", "floatValue", ")", ";", "}", ";","$"};
-    }
+    Parser();
     Parser(std::list<TokenDS>);
     std::list<TokenDS> tokenListFromLexicalAnalyser;//TODO make this a pointer
     /*
@@ -33,7 +41,7 @@ public:
      */
     void tableDrivenParserAlgorithm();
     std::list <std::string> derivation;
-    std::list <std::string> inverseDerivation; //stack
+    std::list <std::string> stackInverseDerivation; //stack
     /*
      * Checks if the symbol is termical
      */
@@ -138,9 +146,14 @@ public:
             {"multiOp",47},
     };
 
+    /*
+     * non terminal symbol values, to be used in Semantic analysis
+     */
+    std::map <std::string,std::string> nonTerminalSymValue;
+
+
+
     int parseTable[48][39] =
-
-
     //{0,"class","id","{","}",";","program","(",")",".","[","]","for","if","then","else","get","put","return","+","-","floatValue","intValue","not","float","int",",","=","<","<=","<>","==",">",">=","or","*","/","and","$"},
             {
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -192,10 +205,20 @@ public:
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,88,89,94,94,94,95,95,95,95,95,95,95,95,95,95,90,95,95,95,95},
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,95,95,95,95,95,95,95,95,95,95,95,91,92,93,95}
             };
+    std::vector<std::string> semanticActions ={
+        "CREATE_GLOBAL_TABLE",
+        "CREATE_CLASS_ENTRY_TABLE",
+        "CREATE_PROGRAM_TABLE",
+        "CREATE_FUNCTION_ENTRY_AND_TABLE",
+        "CREATE_VARIABLE_ENTRY"
+        "COPY_ID"
+    };
+
+
     std::map<int,std::list<std::string> > productions =
     {
-            {1,  {"N_classDecl","progBody"}},        //prog → N_classDecl
-            {2,  {"class", "id","{" ,"RvarDeclfuncDef", "}" ,";"}},        //T
+            {1,  {"CREATE_GLOBAL_TABLE","N_classDecl","progBody"}},        //prog → N_classDecl
+            {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,";"}},        //T
             {3, {"program", "funcBody", ";", "N_funcDef"}},    //Tp
             {4,  {"type", "id", "(", "fParams",")","funcBody",";"}},    //F
             {5, { "{", "N_funcBody", "}"}},         //Ep
@@ -291,11 +314,15 @@ public:
     };
 
     //Implemented as Queue class id { int id [ integer ] ; int id [ integer ] ; } ;
-    std::list <std::string> input;
+    std::list <SyntaticTokenValue> inputSemanticValue;
 
-    //class id { int id [ intValue ] ; } ; program { int id [ intValue ] ; float id [ intValue ] ; } ; float id ( int id [ intValue ] ) { float id ; return ( intValue * floatValue ) ; } ;
+    //std::list <std::string> input;
+
+    std::map < std::string, std::map<std::string, SymbolInfo>  > symbolTables ;
 
 private:
+    bool isSemanticAction(const std::string& symbolFromStack);
+    void performAction(const std::string& symbolFromStack);
     void printDerivation();
     void printInverseDerivation();
     void parseTerminalSymbol(const std::string& nonTerminal, std::string& token);
@@ -303,6 +330,7 @@ private:
      * Reads next token from Lexical analyzer list
      */
     void buildInputFromLex();
+
     int currentTokenIndex;
 };
 #endif /* SRC_SYNTATIC_HH_ */

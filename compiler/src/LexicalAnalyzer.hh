@@ -26,7 +26,8 @@ enum TokenType
     ASSIGNMENT,//=
     PUNCTUATION,//;
     BRACKETS,// { [ ( ) ] }
-    ERROR// any thing other then above
+    ERROR,// any thing other then above
+    NONE
 };
 
 struct TokenDS
