@@ -18,7 +18,7 @@
 
 struct SymbolInfo
 {
-    //std::string name; // x,program,MyClass
+//    std::string name; // x,program,MyClass
     std::string kind;// function, class,parameter,variable
     std::string type;//int,float,class
     //std::map<std::string, SymbolTabel>* link = nullptr; // link to a new symboltable
@@ -146,10 +146,7 @@ public:
             {"multiOp",47},
     };
 
-    /*
-     * non terminal symbol values, to be used in Semantic analysis
-     */
-    std::map <std::string,std::string> nonTerminalSymValue;
+
 
 
 
@@ -209,18 +206,23 @@ public:
         "CREATE_GLOBAL_TABLE",
         "CREATE_CLASS_ENTRY_TABLE",
         "CREATE_PROGRAM_TABLE",
-        "CREATE_FUNCTION_ENTRY_AND_TABLE",
-        "CREATE_VARIABLE_ENTRY"
-        "COPY_ID"
+        "CREATE_FUNCTION_ENTRY",
+        "CREATE_VARIABLE_ENTRY",
+        "COPY_TYPE" // Funtion type or variable type, int or float
     };
 
+    /*
+     * non terminal symbol values, to be used in Semantic analysis
+     */
+    std::map <std::string,std::string> nonTerminalSymValue;
 
     std::map<int,std::list<std::string> > productions =
     {
             {1,  {"CREATE_GLOBAL_TABLE","N_classDecl","progBody"}},        //prog → N_classDecl
             {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,";"}},        //T
-            {3, {"program", "funcBody", ";", "N_funcDef"}},    //Tp
-            {4,  {"type", "id", "(", "fParams",")","funcBody",";"}},    //F
+            {3, {"program","CREATE_PROGRAM_TABLE", "funcBody", ";", "N_funcDef"}},    //Tp
+            //Function declaration ex. int func1 (int x[10], float x[10][20])
+            {4,  {"type","id","CREATE_FUNCTION_ENTRY","(", "fParams",")","funcBody",";"}},
             {5, { "{", "N_funcBody", "}"}},         //Ep
             {6,  {"type", "id", "N_varDeclFunctDef"}},    //F
             {7, {"EPSILON"}},    //Ep
@@ -276,8 +278,8 @@ public:
             {56, {"[", "intValue", "]"}},    //Tp
             {57,  {"id"}},              //F
             {58,  {"FloatOrInt"}},              //F
-            {59,  {"float"}},    //F
-            {60,  {"int"}},              //
+            {59,  {"float","COPY_TYPE"}},    //F
+            {60,  {"int","COPY_TYPE"}},              //
             {61,  {"type", "id", "N_arraySize", "N_fParamsTail"}},        //EF
             {62,  {"EPSILON"}},        //T
             {63,  {"expr" ,"N_aParamsTail"}},        //E
@@ -322,7 +324,7 @@ public:
 
 private:
     bool isSemanticAction(const std::string& symbolFromStack);
-    void performAction(const std::string& symbolFromStack);
+    void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&, const std::string& );
     void printDerivation();
     void printInverseDerivation();
     void parseTerminalSymbol(const std::string& nonTerminal, std::string& token);
@@ -330,6 +332,11 @@ private:
      * Reads next token from Lexical analyzer list
      */
     void buildInputFromLex();
+
+    /*
+     *Prints the Symbol Table
+     */
+    void printSymbolTable(const std::string&);
 
     int currentTokenIndex;
 };

@@ -34,7 +34,7 @@ public:
 
 };
 
-TEST_F(SemanticTest,SymbolTable)
+TEST_F(SemanticTest,SymbolTableFull)
 {
     //Input list consist of following 49 tokens
     /*
@@ -98,3 +98,133 @@ TEST_F(SemanticTest,SymbolTable)
 //    EXPECT_EQ(p.derivation.size(),49);
 }
 
+TEST_F(SemanticTest,SymbolTableGlobalFunctions)
+{
+    //Input list consist of following 49 tokens
+    /*
+     * class id { id id [ integer ] ; } ;  //11 tokens
+     * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
+     * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
+     */
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{ "
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { }; "
+            "float f1(){}; "
+            "int f2(){};";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    /*
+     * Check the Lexical Analyzer, token list should have 49 tokens
+     */
+    EXPECT_EQ(l.tokenList.size(), 28);
+
+    /*
+     * Send the tokens from Lex to Parser
+     */
+    Parser p(l.getTokenDSList());
+
+    SyntaticTokenValue tv;
+       tv.tds.lineNum = 0;
+       tv.tds.type = NONE;
+       tv.tds.value = "$";
+       tv.syntacticValue="$";
+    p.inputSemanticValue.push_back(tv);
+
+   //Parser Input contains 28 tokens + '$' as 29th token
+    EXPECT_EQ(p.inputSemanticValue.size(),29);
+
+    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start parsing
+    p.tableDrivenParserAlgorithm();
+
+//    //At the end of parsing the STACK should have only one element i.e. $
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
+
+    //At the end of parsing the Derivation stack should be equal to input
+    EXPECT_EQ(p.derivation.size(),28);
+
+    //ONLY one table is created i.e. global
+    EXPECT_EQ(p.symbolTables.size(),1);
+
+    //Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
+    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
+
+}
+
+
+TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
+{
+    //Input list consist of following 49 tokens
+    /*
+     * class id { id id [ integer ] ; } ;  //11 tokens
+     * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
+     * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
+     */
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{ "
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { }; "
+            "float f1(){}; "
+            "int f2(){};";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    /*
+     * Check the Lexical Analyzer, token list should have 49 tokens
+     */
+    EXPECT_EQ(l.tokenList.size(), 28);
+
+    /*
+     * Send the tokens from Lex to Parser
+     */
+    Parser p(l.getTokenDSList());
+
+    SyntaticTokenValue tv;
+       tv.tds.lineNum = 0;
+       tv.tds.type = NONE;
+       tv.tds.value = "$";
+       tv.syntacticValue="$";
+    p.inputSemanticValue.push_back(tv);
+
+   //Parser Input contains 28 tokens + '$' as 29th token
+    EXPECT_EQ(p.inputSemanticValue.size(),29);
+
+    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start parsing
+    p.tableDrivenParserAlgorithm();
+
+//    //At the end of parsing the STACK should have only one element i.e. $
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
+
+    //At the end of parsing the Derivation stack should be equal to input
+    EXPECT_EQ(p.derivation.size(),28);
+
+    //ONLY one table is created i.e. global
+    EXPECT_EQ(p.symbolTables.size(),1);
+
+    //Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
+    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
+
+}

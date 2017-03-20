@@ -5,23 +5,24 @@
  *      Author: eshinig
  */
 #include "Syntatic.hh"
+#include <iomanip>
 
 Parser::Parser()
 {
-std::vector<std::string> sampleInput= {"class","id","{","int","id","[", "intValue","]",";","}",";",
-                    "program", "{", "int", "id", "[", "intValue", "]", ";",
-                    "float", "id", "[", "intValue", "]", ";", "}" ,";",
-                    "float", "id","(","int", "id", "[", "intValue", "]", ")",
-                    "{", "float", "id", ";", "return", "(", "intValue" ,"*", "floatValue", ")", ";", "}", ";","$"};
-for(auto str : sampleInput)
-{
-    SyntaticTokenValue tv;
-    tv.syntacticValue = str;
-    tv.tds.lineNum=1;
-    tv.tds.type=NONE;
-    tv.tds.value=str;
-    inputSemanticValue.push_back(tv);
-}
+    std::vector<std::string> sampleInput= {"class","id","{","int","id","[", "intValue","]",";","}",";",
+            "program", "{", "int", "id", "[", "intValue", "]", ";",
+            "float", "id", "[", "intValue", "]", ";", "}" ,";",
+            "float", "id","(","int", "id", "[", "intValue", "]", ")",
+            "{", "float", "id", ";", "return", "(", "intValue" ,"*", "floatValue", ")", ";", "}", ";","$"};
+    for(auto str : sampleInput)
+    {
+        SyntaticTokenValue tv;
+        tv.syntacticValue = str;
+        tv.tds.lineNum=1;
+        tv.tds.type=NONE;
+        tv.tds.value=str;
+        inputSemanticValue.push_back(tv);
+    }
 
 }
 
@@ -52,7 +53,7 @@ void Parser::buildInputFromLex()
         if(it->type == ID )
         {
             tv.syntacticValue = "id";
-//            input.push_back("id");
+            //            input.push_back("id");
         }
 
         else if (it->type == INT_VALUE || it->type==FLOAT_VALUE )
@@ -63,14 +64,14 @@ void Parser::buildInputFromLex()
              */
             if(previousTokenValue == "[")
                 tv.syntacticValue = "intValue";
-                //input.push_back("intValue");
+            //input.push_back("intValue");
 
             else if (it->type == INT_VALUE)
                 tv.syntacticValue = "intValue";
-                //input.push_back("intValue");
+            //input.push_back("intValue");
             else if (it->type == FLOAT_VALUE)
                 tv.syntacticValue = "floatValue";
-                //input.push_back("floatValue");// num is both integer and float
+            //input.push_back("floatValue");// num is both integer and float
         }
 
         else
@@ -114,9 +115,9 @@ void Parser::printInverseDerivation()
     std::cout << std::endl;
 }
 
-void Parser::parseTerminalSymbol(const std::string& nonTerminal, std::string& token)
+void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
 {
-    std::cout << "Matching token found! " << nonTerminal << std::endl;
+    std::cout << "Matching token found! " << symbol << std::endl;
     /*
      * Found the symbol that was expected.
      */
@@ -126,7 +127,7 @@ void Parser::parseTerminalSymbol(const std::string& nonTerminal, std::string& to
     }
     if (!inputSemanticValue.empty())
     {
-       //token = inputSemanticValue.front();
+        //token = inputSemanticValue.front();
         token=inputSemanticValue.front().syntacticValue;
     }
     stackInverseDerivation.pop_back();
@@ -144,22 +145,64 @@ bool Parser::isSemanticAction(const std::string& symbolFromStack)
     return false;
 }
 
-void Parser::performAction(const std::string& symbolFromStack)
+void Parser::performAction(const std::string& symbolFromStack, const SyntaticTokenValue& stv,
+        const std::string& previousSymbolFromLHSProduction)
 {
+    SymbolInfo symInfo;
+    std::string name; //name of class ,func ,x,a
+    std::string kind; //class , function, program
     if(symbolFromStack == "CREATE_GLOBAL_TABLE")
     {
         std::cout<<"GLOBAL TABLE CREATED\n";
-//        SymbolInfo syminfo ;
-//        syminfo.kind = "";
-//        syminfo.kind = "";
-//        symbolTables["global"][]
-        //symbolTableLink = new std::map<std::string, SymbolTabel>;
     }
 
     else if(symbolFromStack == "CREATE_CLASS_ENTRY_TABLE")
     {
-
+        name = stv.tds.value;
+        symInfo.kind = "class";
+        symInfo.type = "";
+        symbolTables["global"][name] = symInfo;
     }
+
+    else if(symbolFromStack == "CREATE_PROGRAM_TABLE")
+    {
+        name = "program";
+        symInfo.kind = "function";
+        symInfo.type = "";
+        symbolTables["global"][name] = symInfo;
+    }
+
+    else if(symbolFromStack == "COPY_TYPE")
+    {
+        std::cout<<"TYPE="<<stv.syntacticValue<<"  "<<stv.tds.value<<std::endl;
+        std::cout<<"Production LHS:  "<<previousSymbolFromLHSProduction<<std::endl;
+        nonTerminalSymValue[previousSymbolFromLHSProduction] = stv.syntacticValue;
+    }
+
+    /*
+     * THis rule will have return types , variable name and arraysize
+     */
+    else if(symbolFromStack == "CREATE_FUNCTION_ENTRY")
+    {
+        name = stv.tds.value;
+        symInfo.kind = "function";
+        symInfo.type = nonTerminalSymValue["FloatOrInt"];
+        symbolTables["global"][name] = symInfo;
+        std::cout<<"CREATE_FUNCTION_ENTRY"<<nonTerminalSymValue.find("FloatOrInt")->second<<"\n";
+    }
+}
+
+void Parser::printSymbolTable(const std::string& tableName)
+{
+
+    std::cout<<"+--------------------------------"<<tableName<<"------------------------+"<<std::endl;
+    std::cout<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::endl;
+    for (auto symRecord : symbolTables.find(tableName)->second)
+    {
+        std::cout<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
+                <<symRecord.second.type<<std::endl;
+    }
+    std::cout<<"+---------------------------------------------------------------+"<<std::endl;
 }
 
 void Parser::tableDrivenParserAlgorithm()
@@ -171,25 +214,31 @@ void Parser::tableDrivenParserAlgorithm()
     stackInverseDerivation.push_back("$");
     stackInverseDerivation.push_back("prog");
     derivation.push_back("prog");
-   // token = input.front();
+    // token = input.front();
     token = inputSemanticValue.front().syntacticValue;
+
     SyntaticTokenValue previousToken;
+    std::string previousSymbolFromLHSProduction;
+
     while(stackInverseDerivation.back()!="$")
     {
         std::cout<<"Token= "<<token<<std::endl;
         printDerivation();
         printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
-        if(isSemanticAction(symbolFromStack))
+        if( isTerminal(symbolFromStack))
         {
-            stackInverseDerivation.pop_back();
-            performAction(symbolFromStack);
-        }
-        else if( isTerminal(symbolFromStack))
-        {
+            previousToken = inputSemanticValue.front();
             parseTerminalSymbol(symbolFromStack, token);
             //else skip error
         }
+
+        else if(isSemanticAction(symbolFromStack))
+        {
+            stackInverseDerivation.pop_back();
+            performAction(symbolFromStack,previousToken,previousSymbolFromLHSProduction);
+        }
+
         //non terminal
         else
         {
@@ -199,7 +248,6 @@ void Parser::tableDrivenParserAlgorithm()
             std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
             if( rule < ERROR_CODE) //
             {
-
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
                 std::list<std::string> tmpSymbolsWithoutSemanticActions; //Use to reverse
@@ -210,7 +258,7 @@ void Parser::tableDrivenParserAlgorithm()
                     std::cout<<symbol<<"   ";
                     myfile << symbol<<"   " ;
                     tmpSymbols.push_back(symbol);
-                    //Do not semantic actions into derivation
+                    //Do not put semantic actions into derivation
                     if(std::find(semanticActions.begin(), semanticActions.end(), symbol)==semanticActions.end())
                     {
                         tmpSymbolsWithoutSemanticActions.push_back(symbol);
@@ -232,11 +280,13 @@ void Parser::tableDrivenParserAlgorithm()
                     stackInverseDerivation.push_back(symbol);
                 }
             }
+            previousSymbolFromLHSProduction = symbolFromStack;
         }
     }
     myfile.close();
     std::cout<<"Algorithm finished!!!!!!!\n";
     printDerivation();
     printInverseDerivation();
+    printSymbolTable("global");
 }
 
