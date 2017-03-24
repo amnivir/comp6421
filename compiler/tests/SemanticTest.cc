@@ -36,12 +36,6 @@ public:
 
 TEST_F(SemanticTest,SymbolTableFull)
 {
-    //Input list consist of following 49 tokens
-    /*
-     * class id { id id [ integer ] ; } ;  //11 tokens
-     * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
-     * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
-     */
     Lex l;
     l.currentCharIndex = 0;
     l.rawToken =
@@ -65,15 +59,12 @@ TEST_F(SemanticTest,SymbolTableFull)
     l.printTokenDataStruct();
 
 //    /*
-//     * Check the Lexical Analyzer, token list should have 49 tokens
+//     * Check the Lexical Analyzer, token list should have 132 tokens
 //     */
-//    EXPECT_EQ(l.tokenList.size(), 49);
-//
-//    l.printTokenDataStruct();
-//
+    EXPECT_EQ(l.tokenList.size(), 132);
+
     Parser p(l.getTokenDSList());
-//
-//
+
     SyntaticTokenValue tv;
        tv.tds.lineNum = 0;
        tv.tds.type = NONE;
@@ -81,9 +72,8 @@ TEST_F(SemanticTest,SymbolTableFull)
        tv.syntacticValue="$";
     p.inputSemanticValue.push_back(tv);
 //
-//   //Parser Input contains 49 tokens + '$' as 50th token
-//
-//    EXPECT_EQ(p.input.size(),50);
+//   //Parser Input contains 132 tokens + '$' as 133th token
+
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 //
 //
@@ -95,17 +85,24 @@ TEST_F(SemanticTest,SymbolTableFull)
     EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 //
 //    //At the end of parsing the Derivation stack should be equal to input
-//    EXPECT_EQ(p.derivation.size(),49);
+    EXPECT_EQ(p.derivation.size(),132);
+
+    //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program ,mc1f1 and f2
+    EXPECT_EQ(p.symbolTables.size(),8);
+
+    //Table global contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
+    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
+
+    //Table program contains 3
+    EXPECT_EQ(p.symbolTables.find("program")->second.size(),3);
+
+    //Table program contains 4
+    EXPECT_EQ(p.symbolTables.find("f1")->second.size(),4);
 }
 
 TEST_F(SemanticTest,SymbolTableGlobalFunctions)
 {
-    //Input list consist of following 49 tokens
-    /*
-     * class id { id id [ integer ] ; } ;  //11 tokens
-     * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
-     * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
-     */
+
     Lex l;
     l.currentCharIndex = 0;
     l.rawToken =
@@ -155,8 +152,8 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
     //At the end of parsing the Derivation stack should be equal to input
     EXPECT_EQ(p.derivation.size(),28);
 
-    //ONLY one table is created i.e. global
-    EXPECT_EQ(p.symbolTables.size(),1);
+    //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
+    EXPECT_EQ(p.symbolTables.size(),6);
 
     //Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
     EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
@@ -166,12 +163,6 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
 
 TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
 {
-    //Input list consist of following 49 tokens
-    /*
-     * class id { id id [ integer ] ; } ;  //11 tokens
-     * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
-     * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
-     */
     Lex l;
     l.currentCharIndex = 0;
     l.rawToken =
@@ -182,16 +173,16 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
             "{"
             "};"
             "program { }; "
-            "float f1(){}; "
+            "float f1(int fp1[2][4], float fp2){ int v1[10]; float v2; }; "
             "int f2(){};";
 
     l.findTokenTypeAndBuildList();
     l.printTokenDataStruct();
 
     /*
-     * Check the Lexical Analyzer, token list should have 49 tokens
+     * Check the Lexical Analyzer, token list should have 39 tokens
      */
-    EXPECT_EQ(l.tokenList.size(), 28);
+    EXPECT_EQ(l.tokenList.size(), 48);
 
     /*
      * Send the tokens from Lex to Parser
@@ -205,8 +196,8 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
        tv.syntacticValue="$";
     p.inputSemanticValue.push_back(tv);
 
-   //Parser Input contains 28 tokens + '$' as 29th token
-    EXPECT_EQ(p.inputSemanticValue.size(),29);
+   //Parser Input contains 48 tokens + '$' as 49th token
+    EXPECT_EQ(p.inputSemanticValue.size(),49);
 
     // based on grammar
     EXPECT_EQ(p.productions.size(), 93);
@@ -219,12 +210,11 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
     EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input
-    EXPECT_EQ(p.derivation.size(),28);
+    EXPECT_EQ(p.derivation.size(),48);
 
-    //ONLY one table is created i.e. global
-    EXPECT_EQ(p.symbolTables.size(),1);
+    //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
+    EXPECT_EQ(p.symbolTables.size(),6);
 
-    //Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
-    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
-
+    //Table contains 5 symbols--> fp1 fp2 v1 v2;
+    EXPECT_EQ(p.symbolTables.find("f1")->second.size(),4);
 }

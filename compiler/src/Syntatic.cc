@@ -5,6 +5,7 @@
  *      Author: eshinig
  */
 #include "Syntatic.hh"
+#include "Semantic.h"
 #include <iomanip>
 
 Parser::Parser()
@@ -133,17 +134,6 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
     stackInverseDerivation.pop_back();
 }
 
-bool Parser::isSemanticAction(const std::string& symbolFromStack)
-{
-    for (auto symbol : semanticActions)
-    {
-        if(symbol == symbolFromStack)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 void Parser::performAction(const std::string& symbolFromStack, const SyntaticTokenValue& stv,
         const std::string& previousSymbolFromLHSProduction)
@@ -154,6 +144,7 @@ void Parser::performAction(const std::string& symbolFromStack, const SyntaticTok
     if(symbolFromStack == "CREATE_GLOBAL_TABLE")
     {
         std::cout<<"GLOBAL TABLE CREATED\n";
+        currentTable.push_back("global");
     }
 
     else if(symbolFromStack == "CREATE_CLASS_ENTRY_TABLE")
@@ -164,7 +155,7 @@ void Parser::performAction(const std::string& symbolFromStack, const SyntaticTok
         symbolTables["global"][name] = symInfo;
     }
 
-    else if(symbolFromStack == "CREATE_PROGRAM_TABLE")
+    else if(symbolFromStack == "CREATE_PROGRAM_ENTRY")
     {
         name = "program";
         symInfo.kind = "function";
@@ -176,33 +167,70 @@ void Parser::performAction(const std::string& symbolFromStack, const SyntaticTok
     {
         std::cout<<"TYPE="<<stv.syntacticValue<<"  "<<stv.tds.value<<std::endl;
         std::cout<<"Production LHS:  "<<previousSymbolFromLHSProduction<<std::endl;
-        nonTerminalSymValue[previousSymbolFromLHSProduction] = stv.syntacticValue;
+        nonTerminalSymValue["type"] = stv.syntacticValue;
     }
 
     /*
-     * THis rule will have return types , variable name and arraysize
+     * THis rule will have return types
+     * once the entry to table is done, new table is created
+     *
      */
     else if(symbolFromStack == "CREATE_FUNCTION_ENTRY")
     {
         name = stv.tds.value;
         symInfo.kind = "function";
         symInfo.type = nonTerminalSymValue["FloatOrInt"];
+        symInfo.link = name;
         symbolTables["global"][name] = symInfo;
         std::cout<<"CREATE_FUNCTION_ENTRY"<<nonTerminalSymValue.find("FloatOrInt")->second<<"\n";
+        //now the entries are going to be in new function table
+        currentTable.push_back(name);
+    }
+
+    else if(symbolFromStack == "COPY_ARRAY_SIZE")
+    {
+        name = stv.tds.value;
+        std::cout<<"COPY_ARRAY_SIZE="<<name;
+        nonTerminalSymValue["arraySize"] = nonTerminalSymValue["arraySize"] +
+                "[" + name + "]";
+        std::cout<<"ARRAT_SIZE"<<nonTerminalSymValue["arraySize"]<<std::endl;
+    }
+
+    else if(symbolFromStack == "COPY_ID")//creates new table with parameter
+    {
+        //name = stv.tds.value;
+        std::cout<<"COPY_ID\n";
+        name = stv.tds.value;//id
+        nonTerminalSymValue["id_value"]=name;
+
+    }
+
+    else if(symbolFromStack == "WRITE_PARAMETER_DIMENSION")
+    {
+        std::cout<<"WRITE_PARAMETER_DIMENSION"<<std::endl;
+        symInfo.kind = "parameter";
+        symInfo.type = nonTerminalSymValue["type"].append(nonTerminalSymValue["arraySize"]);
+        symbolTables[currentTable.back()][nonTerminalSymValue["id_value"]] = symInfo;
+        nonTerminalSymValue.clear();
+
     }
 }
 
 void Parser::printSymbolTable(const std::string& tableName)
 {
-
-    std::cout<<"+--------------------------------"<<tableName<<"------------------------+"<<std::endl;
-    std::cout<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::endl;
-    for (auto symRecord : symbolTables.find(tableName)->second)
+    for (std::map < std::string, std::map<std::string, SymbolInfo>  >::iterator iter = symbolTables.begin();
+            iter != symbolTables.end();
+            ++iter)
     {
-        std::cout<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
-                <<symRecord.second.type<<std::endl;
+        std::cout<<"+--------------------------------"<<iter->first<<"--------------------------------------------+"<<std::endl;
+        std::cout<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::setw(20)<<"link"<<std::endl;
+        for (auto symRecord : symbolTables.find(iter->first)->second)
+        {
+            std::cout<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
+            <<symRecord.second.type<<std::setw(20)<<symRecord.second.link<<std::endl;
+        }
+        std::cout<<"+-----------------------------------------------------------------------------------+"<<std::endl;
     }
-    std::cout<<"+---------------------------------------------------------------+"<<std::endl;
 }
 
 void Parser::tableDrivenParserAlgorithm()
@@ -226,6 +254,7 @@ void Parser::tableDrivenParserAlgorithm()
         printDerivation();
         printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
+        std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
         if( isTerminal(symbolFromStack))
         {
             previousToken = inputSemanticValue.front();
@@ -233,7 +262,7 @@ void Parser::tableDrivenParserAlgorithm()
             //else skip error
         }
 
-        else if(isSemanticAction(symbolFromStack))
+        else if(Semantic::isSemanticAction(symbolFromStack))
         {
             stackInverseDerivation.pop_back();
             performAction(symbolFromStack,previousToken,previousSymbolFromLHSProduction);
@@ -259,7 +288,8 @@ void Parser::tableDrivenParserAlgorithm()
                     myfile << symbol<<"   " ;
                     tmpSymbols.push_back(symbol);
                     //Do not put semantic actions into derivation
-                    if(std::find(semanticActions.begin(), semanticActions.end(), symbol)==semanticActions.end())
+                    if(std::find(Semantic::semanticActions.begin(), Semantic::semanticActions.end(),
+                            symbol) == Semantic::semanticActions.end())
                     {
                         tmpSymbolsWithoutSemanticActions.push_back(symbol);
                     }
@@ -288,5 +318,6 @@ void Parser::tableDrivenParserAlgorithm()
     printDerivation();
     printInverseDerivation();
     printSymbolTable("global");
+    printSymbolTable("f1");
 }
 

@@ -21,6 +21,7 @@ struct SymbolInfo
 //    std::string name; // x,program,MyClass
     std::string kind;// function, class,parameter,variable
     std::string type;//int,float,class
+    std::string link="NONE"; //TODO create a stack of table;
     //std::map<std::string, SymbolTabel>* link = nullptr; // link to a new symboltable
 };
 
@@ -202,14 +203,7 @@ public:
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,88,89,94,94,94,95,95,95,95,95,95,95,95,95,95,90,95,95,95,95},
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,95,95,95,95,95,95,95,95,95,95,95,91,92,93,95}
             };
-    std::vector<std::string> semanticActions ={
-        "CREATE_GLOBAL_TABLE",
-        "CREATE_CLASS_ENTRY_TABLE",
-        "CREATE_PROGRAM_TABLE",
-        "CREATE_FUNCTION_ENTRY",
-        "CREATE_VARIABLE_ENTRY",
-        "COPY_TYPE" // Funtion type or variable type, int or float
-    };
+
 
     /*
      * non terminal symbol values, to be used in Semantic analysis
@@ -220,7 +214,7 @@ public:
     {
             {1,  {"CREATE_GLOBAL_TABLE","N_classDecl","progBody"}},        //prog → N_classDecl
             {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,";"}},        //T
-            {3, {"program","CREATE_PROGRAM_TABLE", "funcBody", ";", "N_funcDef"}},    //Tp
+            {3, {"program","CREATE_PROGRAM_ENTRY", "funcBody", ";", "N_funcDef"}},    //Tp
             //Function declaration ex. int func1 (int x[10], float x[10][20])
             {4,  {"type","id","CREATE_FUNCTION_ENTRY","(", "fParams",")","funcBody",";"}},
             {5, { "{", "N_funcBody", "}"}},         //Ep
@@ -233,7 +227,7 @@ public:
             {12,  {"EPSILON"}},        //T
             {13,  {"id","N_arraySize",";","N_funcBody"}},              //F
             {14,  {"N_indiceIdnest", "assignOp", "expr", ";", "N_statement"}},        //E
-            {15, {"FloatOrInt", "id", "N_arraySize", ";", "N_funcBody"}},    //Ep
+            {15, {"FloatOrInt", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION", ";", "N_funcBody"}},    //Ep
             {16,  {"id", "N_varDeclStatement"}},        //T
             {17,  {"statementNoID", "N_statement"}},              //F
             {18, {"EPSILON"}},         //Tp
@@ -275,16 +269,16 @@ public:
             {53,  {"(","aParams",")"}},
             {54,  {"EPSILON"}},        //T//E
             {55, { "[", "arithExpr", "]"}},         //Tp
-            {56, {"[", "intValue", "]"}},    //Tp
+            {56, {"[", "intValue","COPY_ARRAY_SIZE" ,"]"}},    //Tp
             {57,  {"id"}},              //F
             {58,  {"FloatOrInt"}},              //F
             {59,  {"float","COPY_TYPE"}},    //F
             {60,  {"int","COPY_TYPE"}},              //
-            {61,  {"type", "id", "N_arraySize", "N_fParamsTail"}},        //EF
+            {61,  {"type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION", "N_fParamsTail"}},        //EF
             {62,  {"EPSILON"}},        //T
             {63,  {"expr" ,"N_aParamsTail"}},        //E
             {64, {"EPSILON"}},         //Ep
-            {65,  {",", "type", "id", "N_arraySize"}},    //Ep
+            {65,  {",", "type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION"}},    //Ep
             {66, {"," "expr"}},    //Ep
             {67,  {"classDecl", "N_classDecl"}},
             {68,  {"EPSILON"}},        //T
@@ -315,15 +309,21 @@ public:
             {93,  {"and"}},              //F
     };
 
-    //Implemented as Queue class id { int id [ integer ] ; int id [ integer ] ; } ;
     std::list <SyntaticTokenValue> inputSemanticValue;
 
-    //std::list <std::string> input;
 
+    /**
+     * This is stack of the tables created during the creation of Symbol table
+     */
+    std::vector<std::string> currentTable;
+
+    /**
+     * This is the data structure for the symbol table
+     * <  "TableName", < <"Symbol">, <Symbol Type Kind>   >>
+     */
     std::map < std::string, std::map<std::string, SymbolInfo>  > symbolTables ;
 
 private:
-    bool isSemanticAction(const std::string& symbolFromStack);
     void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&, const std::string& );
     void printDerivation();
     void printInverseDerivation();
