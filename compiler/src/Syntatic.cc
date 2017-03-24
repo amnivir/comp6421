@@ -6,7 +6,6 @@
  */
 #include "Syntatic.hh"
 #include "Semantic.h"
-#include <iomanip>
 
 Parser::Parser()
 {
@@ -135,104 +134,6 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
 }
 
 
-void Parser::performAction(const std::string& symbolFromStack, const SyntaticTokenValue& stv,
-        const std::string& previousSymbolFromLHSProduction)
-{
-    SymbolInfo symInfo;
-    std::string name; //name of class ,func ,x,a
-    std::string kind; //class , function, program
-    if(symbolFromStack == "CREATE_GLOBAL_TABLE")
-    {
-        std::cout<<"GLOBAL TABLE CREATED\n";
-        currentTable.push_back("global");
-    }
-
-    else if(symbolFromStack == "CREATE_CLASS_ENTRY_TABLE")
-    {
-        name = stv.tds.value;
-        symInfo.kind = "class";
-        symInfo.type = "";
-        symbolTables["global"][name] = symInfo;
-    }
-
-    else if(symbolFromStack == "CREATE_PROGRAM_ENTRY")
-    {
-        name = "program";
-        symInfo.kind = "function";
-        symInfo.type = "";
-        symbolTables["global"][name] = symInfo;
-    }
-
-    else if(symbolFromStack == "COPY_TYPE")
-    {
-        std::cout<<"TYPE="<<stv.syntacticValue<<"  "<<stv.tds.value<<std::endl;
-        std::cout<<"Production LHS:  "<<previousSymbolFromLHSProduction<<std::endl;
-        nonTerminalSymValue["type"] = stv.syntacticValue;
-    }
-
-    /*
-     * THis rule will have return types
-     * once the entry to table is done, new table is created
-     *
-     */
-    else if(symbolFromStack == "CREATE_FUNCTION_ENTRY")
-    {
-        name = stv.tds.value;
-        symInfo.kind = "function";
-        symInfo.type = nonTerminalSymValue["FloatOrInt"];
-        symInfo.link = name;
-        symbolTables["global"][name] = symInfo;
-        std::cout<<"CREATE_FUNCTION_ENTRY"<<nonTerminalSymValue.find("FloatOrInt")->second<<"\n";
-        //now the entries are going to be in new function table
-        currentTable.push_back(name);
-    }
-
-    else if(symbolFromStack == "COPY_ARRAY_SIZE")
-    {
-        name = stv.tds.value;
-        std::cout<<"COPY_ARRAY_SIZE="<<name;
-        nonTerminalSymValue["arraySize"] = nonTerminalSymValue["arraySize"] +
-                "[" + name + "]";
-        std::cout<<"ARRAT_SIZE"<<nonTerminalSymValue["arraySize"]<<std::endl;
-    }
-
-    else if(symbolFromStack == "COPY_ID")//creates new table with parameter
-    {
-        //name = stv.tds.value;
-        std::cout<<"COPY_ID\n";
-        name = stv.tds.value;//id
-        nonTerminalSymValue["id_value"]=name;
-
-    }
-
-    else if(symbolFromStack == "WRITE_PARAMETER_DIMENSION")
-    {
-        std::cout<<"WRITE_PARAMETER_DIMENSION"<<std::endl;
-        symInfo.kind = "parameter";
-        symInfo.type = nonTerminalSymValue["type"].append(nonTerminalSymValue["arraySize"]);
-        symbolTables[currentTable.back()][nonTerminalSymValue["id_value"]] = symInfo;
-        nonTerminalSymValue.clear();
-
-    }
-}
-
-void Parser::printSymbolTable(const std::string& tableName)
-{
-    for (std::map < std::string, std::map<std::string, SymbolInfo>  >::iterator iter = symbolTables.begin();
-            iter != symbolTables.end();
-            ++iter)
-    {
-        std::cout<<"+--------------------------------"<<iter->first<<"--------------------------------------------+"<<std::endl;
-        std::cout<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::setw(20)<<"link"<<std::endl;
-        for (auto symRecord : symbolTables.find(iter->first)->second)
-        {
-            std::cout<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
-            <<symRecord.second.type<<std::setw(20)<<symRecord.second.link<<std::endl;
-        }
-        std::cout<<"+-----------------------------------------------------------------------------------+"<<std::endl;
-    }
-}
-
 void Parser::tableDrivenParserAlgorithm()
 {
     std::ofstream myfile;
@@ -246,7 +147,6 @@ void Parser::tableDrivenParserAlgorithm()
     token = inputSemanticValue.front().syntacticValue;
 
     SyntaticTokenValue previousToken;
-    std::string previousSymbolFromLHSProduction;
 
     while(stackInverseDerivation.back()!="$")
     {
@@ -265,7 +165,7 @@ void Parser::tableDrivenParserAlgorithm()
         else if(Semantic::isSemanticAction(symbolFromStack))
         {
             stackInverseDerivation.pop_back();
-            performAction(symbolFromStack,previousToken,previousSymbolFromLHSProduction);
+            Semantic::performAction(symbolFromStack,previousToken);
         }
 
         //non terminal
@@ -310,14 +210,13 @@ void Parser::tableDrivenParserAlgorithm()
                     stackInverseDerivation.push_back(symbol);
                 }
             }
-            previousSymbolFromLHSProduction = symbolFromStack;
         }
     }
     myfile.close();
     std::cout<<"Algorithm finished!!!!!!!\n";
     printDerivation();
     printInverseDerivation();
-    printSymbolTable("global");
-    printSymbolTable("f1");
+    Semantic::printSymbolTable("global");
+    Semantic::printSymbolTable("f1");
 }
 

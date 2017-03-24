@@ -16,15 +16,6 @@
 #ifndef SRC_SYNTATIC_HH_
 #define SRC_SYNTATIC_HH_
 
-struct SymbolInfo
-{
-//    std::string name; // x,program,MyClass
-    std::string kind;// function, class,parameter,variable
-    std::string type;//int,float,class
-    std::string link="NONE"; //TODO create a stack of table;
-    //std::map<std::string, SymbolTabel>* link = nullptr; // link to a new symboltable
-};
-
 struct SyntaticTokenValue
 {
     TokenDS tds;
@@ -205,11 +196,6 @@ public:
             };
 
 
-    /*
-     * non terminal symbol values, to be used in Semantic analysis
-     */
-    std::map <std::string,std::string> nonTerminalSymValue;
-
     std::map<int,std::list<std::string> > productions =
     {
             {1,  {"CREATE_GLOBAL_TABLE","N_classDecl","progBody"}},        //prog → N_classDecl
@@ -311,20 +297,7 @@ public:
 
     std::list <SyntaticTokenValue> inputSemanticValue;
 
-
-    /**
-     * This is stack of the tables created during the creation of Symbol table
-     */
-    std::vector<std::string> currentTable;
-
-    /**
-     * This is the data structure for the symbol table
-     * <  "TableName", < <"Symbol">, <Symbol Type Kind>   >>
-     */
-    std::map < std::string, std::map<std::string, SymbolInfo>  > symbolTables ;
-
 private:
-    void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&, const std::string& );
     void printDerivation();
     void printInverseDerivation();
     void parseTerminalSymbol(const std::string& nonTerminal, std::string& token);
@@ -332,11 +305,6 @@ private:
      * Reads next token from Lexical analyzer list
      */
     void buildInputFromLex();
-
-    /*
-     *Prints the Symbol Table
-     */
-    void printSymbolTable(const std::string&);
 
     int currentTokenIndex;
 };

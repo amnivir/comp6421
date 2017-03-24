@@ -6,6 +6,7 @@
  */
 #include <LexicalAnalyzer.hh>
 #include <Syntatic.hh>
+#include <Semantic.h>
 #include "gtest/gtest.h"
 #include<iostream>
 #include<boost/tokenizer.hpp>
@@ -25,11 +26,13 @@ public:
 
     void SetUp()
     {
-
     }
 
     void TearDown()
     {
+        Semantic::currentTable.clear();
+        Semantic::nonTerminalSymValue.clear();
+        Semantic::symbolTables.clear();
     }
 
 };
@@ -88,16 +91,16 @@ TEST_F(SemanticTest,SymbolTableFull)
     EXPECT_EQ(p.derivation.size(),132);
 
     //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program ,mc1f1 and f2
-    EXPECT_EQ(p.symbolTables.size(),8);
+    EXPECT_EQ(Semantic::symbolTables.size(),8);
 
     //Table global contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
-    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
+    EXPECT_EQ(Semantic::symbolTables.find("global")->second.size(),5);
 
     //Table program contains 3
-    EXPECT_EQ(p.symbolTables.find("program")->second.size(),3);
+    EXPECT_EQ(Semantic::symbolTables.find("program")->second.size(),3);
 
     //Table program contains 4
-    EXPECT_EQ(p.symbolTables.find("f1")->second.size(),4);
+    EXPECT_EQ(Semantic::symbolTables.find("f1")->second.size(),4);
 }
 
 TEST_F(SemanticTest,SymbolTableGlobalFunctions)
@@ -152,11 +155,11 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
     //At the end of parsing the Derivation stack should be equal to input
     EXPECT_EQ(p.derivation.size(),28);
 
-    //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
-    EXPECT_EQ(p.symbolTables.size(),6);
-
-    //Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
-    EXPECT_EQ(p.symbolTables.find("global")->second.size(),5);
+//    8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
+    EXPECT_EQ(Semantic::symbolTables.size(),6);
+//
+//    Table contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
+    EXPECT_EQ(Semantic::symbolTables.find("global")->second.size(),5);
 
 }
 
@@ -213,8 +216,8 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
     EXPECT_EQ(p.derivation.size(),48);
 
     //8 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
-    EXPECT_EQ(p.symbolTables.size(),6);
+    EXPECT_EQ(Semantic::symbolTables.size(),6);
 
     //Table contains 5 symbols--> fp1 fp2 v1 v2;
-    EXPECT_EQ(p.symbolTables.find("f1")->second.size(),4);
+    EXPECT_EQ(Semantic::symbolTables.find("f1")->second.size(),4);
 }
