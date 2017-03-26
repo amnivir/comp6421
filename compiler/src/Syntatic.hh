@@ -143,8 +143,8 @@ public:
 
 
     int parseTable[48][39] =
-    //{0,"class","id","{","}",";","program","(",")",".","[","]","for","if","then","else","get","put","return","+","-","floatValue","intValue","not","float","int",",","=","<","<=","<>","==",">",">=","or","*","/","and","$"},
-            {
+            //{0,"class","id","{","}",";","program","(",")",".","[","]","for","if","then","else","get","put","return","+","-","floatValue","intValue","not","float","int",",","=","<","<=","<>","==",">",">=","or","*","/","and","$"},
+    {
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,1,95,95,95,95,1,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,94},
             {0,2,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95},
@@ -193,28 +193,28 @@ public:
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,95,95,95,95,82,83,84,85,86,87,95,95,95,95,95},
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,88,89,94,94,94,95,95,95,95,95,95,95,95,95,95,90,95,95,95,95},
             {0,95,94,95,95,95,95,94,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,95,95,95,95,95,95,95,95,95,95,95,91,92,93,95}
-            };
+    };
 
 
     std::map<int,std::list<std::string> > productions =
     {
             {1,  {"CREATE_GLOBAL_TABLE","N_classDecl","progBody"}},        //prog → N_classDecl
-            {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,";"}},        //T
+            {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,"END_FUNCTION",";"}},        //T
             {3, {"program","CREATE_PROGRAM_ENTRY", "funcBody", ";", "N_funcDef"}},    //Tp
             //Function declaration ex. int func1 (int x[10], float x[10][20])
-            {4,  {"type","id","CREATE_FUNCTION_ENTRY","(", "fParams",")","funcBody",";"}},
-            {5, { "{", "N_funcBody", "}"}},         //Ep
-            {6,  {"type", "id", "N_varDeclFunctDef"}},    //F
+            {4,  {"type","id","CREATE_FUNCTION_ENTRY","(", "fParams",")","CREATE_PARAMETER_DIMENSIONS","funcBody",";"}},
+            {5, { "{", "N_funcBody", "}","END_FUNCTION"}},         //Ep
+            {6,  {"type", "id","COPY_ID", "N_varDeclFunctDef"}},    //F
             {7, {"EPSILON"}},    //Ep
             {8, {"(","fParams",")","funcBody",";","RvarDeclfuncDef"}},         //Ep
-            {9, {"N_arraySize",";","RvarDeclfuncDef"}},         //Tp
+            {9, {"N_arraySize","WRITE_VARIABLE_DIMENSION",";","CREATE_VARIABLE_DIMENSIONS","RvarDeclfuncDef"}},         //Tp
             {10, {".","id","N_indiceIdnest"}},    //Tp
             {11,  {"[","arithExpr","]","N_indiceIdnest"}},              //F
             {12,  {"EPSILON"}},        //T
-            {13,  {"id","N_arraySize",";","N_funcBody"}},              //F
+            {13,  {"id","COPY_ID","N_arraySize","WRITE_VARIABLE_DIMENSION",";","CREATE_VARIABLE_DIMENSIONS","N_funcBody"}},              //F
             {14,  {"N_indiceIdnest", "assignOp", "expr", ";", "N_statement"}},        //E
-            {15, {"FloatOrInt", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION", ";", "N_funcBody"}},    //Ep
-            {16,  {"id", "N_varDeclStatement"}},        //T
+            {15, {"FloatOrInt", "id", "COPY_ID","N_arraySize","WRITE_VARIABLE_DIMENSION", ";", "CREATE_VARIABLE_DIMENSIONS","N_funcBody"}},    //Ep
+            {16,  {"id","COPY_TYPE", "N_varDeclStatement"}},        //T
             {17,  {"statementNoID", "N_statement"}},              //F
             {18, {"EPSILON"}},         //Tp
             {19,  {"statementNoID"}},              //F
@@ -222,77 +222,77 @@ public:
             {21,  {"variable", "assignOp", "expr", ";"}},              //F
             {22,  {"for", "(", "type", "id", "assignOp", "expr", ";", "relExpr", ";",
                     "assignStat", ")", "statBlock", ";"}},        //E
-            {23, {"if", "(", "expr", ")", "then", "statBlock", "else", "statBlock", ";"}},         //Ep
-            {24, {"get", "(", "variable", ")", ";"}},         //Ep
-            {25,  {"put", "(", "expr", ")" ,";"}},        //T
-            {26,  {"return", "(", "expr", ")" ,";"}},        //T
-            {27,  {"variable", "assignOp" ,"expr"}},        //T//T
-            {28,  {"{","N_statement","}"}},        //T
-            {29,  {"statement"}},    //Tp
-            {30,  {"EPSILON"}},              //F
-            {31,  {"arithExpr", "expr_"}},    //F
-            {32,  {"relOp", "arithExpr"}},    //F
-            {33,  {"EPSILON"}},
-            {34,  {"arithExpr", "relOp", "arithExpr"}},              //F
-            {35,  {"term", "arithExprLR"}},        //E
-            {36,  {"addOp", "term", "arithExprLR"}},//Ep
-            {37,  {"EPSILON"}},              //F
-            {38, {"+"}},    //Ep
-            {39,  {"-"}},        //T
-            {40, {"factor", "termLR"}},         //Tp
-            {41, {"multiOp", "factor", "termLR"}},    //Tp
-            {42,  {"EPSILON"}},
-            {43,  {"(", "arithExpr", ")"}},    //F
-            {44,  {"floatValue"}},
-            {45,  {"intValue"}},
-            {46,  {"not", "factor"}},//F
-            {47,  {"variable", "factor_"}},//F
-            {48,  {"sign", "factor"}},//F
-            {49, {"id","N_indice","N_idnest"}},         //Ep
-            {50,  {"idnest_","N_idnest" }},        //E
-            {51,  {"EPSILON"}},        //T
-            {52,  {".","id","N_indice"}},        //T
-            {53,  {"(","aParams",")"}},
-            {54,  {"EPSILON"}},        //T//E
-            {55, { "[", "arithExpr", "]"}},         //Tp
-            {56, {"[", "intValue","COPY_ARRAY_SIZE" ,"]"}},    //Tp
-            {57,  {"id"}},              //F
-            {58,  {"FloatOrInt"}},              //F
-            {59,  {"float","COPY_TYPE"}},    //F
-            {60,  {"int","COPY_TYPE"}},              //
-            {61,  {"type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION", "N_fParamsTail"}},        //EF
-            {62,  {"EPSILON"}},        //T
-            {63,  {"expr" ,"N_aParamsTail"}},        //E
-            {64, {"EPSILON"}},         //Ep
-            {65,  {",", "type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION"}},    //Ep
-            {66, {"," "expr"}},    //Ep
-            {67,  {"classDecl", "N_classDecl"}},
-            {68,  {"EPSILON"}},        //T
-            {69,  {"funcDef", "N_funcDef"}},    //F
-            {70,  {"EPSILON"}},
-            {71,  {"statement", "N_statement"}},        //T
-            {72,  {"EPSILON"}},
-            {73,  {"arraySize", "N_arraySize"}},    //F
-            {74,  {"EPSILON"}},
-            {75,  {"indice","N_indice" }},
-            {76,  {"EPSILON"}},
-            {77,  {"fParamsTail", "N_fParamsTail"}},        //EF
-            {78,  {"EPSILON"}},
-            {79, {"aParamsTail", "N_aParamsTail"}},    //Ep
-            {80,  {"EPSILON"}},
-            {81,  {"="}},    //Tp
-            {82,  {"<"}},    //F
-            {83,  {"<="}},              //F
-            {84,  {"<>"}},              //F
-            {85,  {"=="}},        //E
-            {86, {">"}},         //Ep
-            {87, {">="}},    //Ep
-            {88,  {"+"}},        //T
-            {89, {"-"}},         //Tp
-            {90, {"or"}},    //Tp
-            {91,  {"*"}},    //F
-            {92,  {"/"}},              //F
-            {93,  {"and"}},              //F
+                    {23, {"if", "(", "expr", ")", "then", "statBlock", "else", "statBlock", ";"}},         //Ep
+                    {24, {"get", "(", "variable", ")", ";"}},         //Ep
+                    {25,  {"put", "(", "expr", ")" ,";"}},        //T
+                    {26,  {"return", "(", "expr", ")" ,";"}},        //T
+                    {27,  {"variable", "assignOp" ,"expr"}},        //T//T
+                    {28,  {"{","N_statement","}"}},        //T
+                    {29,  {"statement"}},    //Tp
+                    {30,  {"EPSILON"}},              //F
+                    {31,  {"arithExpr", "expr_"}},    //F
+                    {32,  {"relOp", "arithExpr"}},    //F
+                    {33,  {"EPSILON"}},
+                    {34,  {"arithExpr", "relOp", "arithExpr"}},              //F
+                    {35,  {"term", "arithExprLR"}},        //E
+                    {36,  {"addOp", "term", "arithExprLR"}},//Ep
+                    {37,  {"EPSILON"}},              //F
+                    {38, {"+"}},    //Ep
+                    {39,  {"-"}},        //T
+                    {40, {"factor", "termLR"}},         //Tp
+                    {41, {"multiOp", "factor", "termLR"}},    //Tp
+                    {42,  {"EPSILON"}},
+                    {43,  {"(", "arithExpr", ")"}},    //F
+                    {44,  {"floatValue"}},
+                    {45,  {"intValue"}},
+                    {46,  {"not", "factor"}},//F
+                    {47,  {"variable", "factor_"}},//F
+                    {48,  {"sign", "factor"}},//F
+                    {49, {"id","N_indice","N_idnest"}},         //Ep
+                    {50,  {"idnest_","N_idnest" }},        //E
+                    {51,  {"EPSILON"}},        //T
+                    {52,  {".","id","N_indice"}},        //T
+                    {53,  {"(","aParams",")"}},
+                    {54,  {"EPSILON"}},        //T//E
+                    {55, { "[", "arithExpr", "]"}},         //Tp
+                    {56, {"[", "intValue","COPY_ARRAY_SIZE" ,"]"}},    //Tp
+                    {57,  {"id","COPY_TYPE"}},              //F
+                    {58,  {"FloatOrInt"}},              //F
+                    {59,  {"float","COPY_TYPE"}},    //F
+                    {60,  {"int","COPY_TYPE"}},              //
+                    {61,  {"type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION", "N_fParamsTail"}},        //EF
+                    {62,  {"EPSILON"}},        //T
+                    {63,  {"expr" ,"N_aParamsTail"}},        //E
+                    {64, {"EPSILON"}},         //Ep
+                    {65,  {",", "type", "id", "COPY_ID","N_arraySize","WRITE_PARAMETER_DIMENSION"}},    //Ep
+                    {66, {"," "expr"}},    //Ep
+                    {67,  {"classDecl", "N_classDecl"}},
+                    {68,  {"EPSILON"}},        //T
+                    {69,  {"funcDef", "N_funcDef"}},    //F
+                    {70,  {"EPSILON"}},
+                    {71,  {"statement", "N_statement"}},        //T
+                    {72,  {"EPSILON"}},
+                    {73,  {"arraySize", "N_arraySize"}},    //F
+                    {74,  {"EPSILON"}},
+                    {75,  {"indice","N_indice" }},
+                    {76,  {"EPSILON"}},
+                    {77,  {"fParamsTail", "N_fParamsTail"}},        //EF
+                    {78,  {"EPSILON"}},
+                    {79, {"aParamsTail", "N_aParamsTail"}},    //Ep
+                    {80,  {"EPSILON"}},
+                    {81,  {"="}},    //Tp
+                    {82,  {"<"}},    //F
+                    {83,  {"<="}},              //F
+                    {84,  {"<>"}},              //F
+                    {85,  {"=="}},        //E
+                    {86, {">"}},         //Ep
+                    {87, {">="}},    //Ep
+                    {88,  {"+"}},        //T
+                    {89, {"-"}},         //Tp
+                    {90, {"or"}},    //Tp
+                    {91,  {"*"}},    //F
+                    {92,  {"/"}},              //F
+                    {93,  {"and"}},              //F
     };
 
     std::list <SyntaticTokenValue> inputSemanticValue;

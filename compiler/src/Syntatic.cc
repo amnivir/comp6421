@@ -117,7 +117,7 @@ void Parser::printInverseDerivation()
 
 void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
 {
-    std::cout << "Matching token found! " << symbol << std::endl;
+    //std::cout << "Matching token found! " << symbol << std::endl;
     /*
      * Found the symbol that was expected.
      */
@@ -139,7 +139,7 @@ void Parser::tableDrivenParserAlgorithm()
     std::ofstream myfile;
     myfile.open ("syntatic_output.txt");
     std::string token;
-    std::cout<<"No. of predictions="<<productions.size()<<std::endl;
+    //std::cout<<"No. of predictions="<<productions.size()<<std::endl;
     stackInverseDerivation.push_back("$");
     stackInverseDerivation.push_back("prog");
     derivation.push_back("prog");
@@ -150,11 +150,11 @@ void Parser::tableDrivenParserAlgorithm()
 
     while(stackInverseDerivation.back()!="$")
     {
-        std::cout<<"Token= "<<token<<std::endl;
+        //std::cout<<"Token= "<<token<<std::endl;
         printDerivation();
         printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
-        std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
+        //std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
         if( isTerminal(symbolFromStack))
         {
             previousToken = inputSemanticValue.front();
@@ -174,17 +174,17 @@ void Parser::tableDrivenParserAlgorithm()
             int row = nonTerminalSymbolsMap[symbolFromStack];
             int column = terminalSymbolsMap.find(token)->second;
             int rule = parseTable[row][column];
-            std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
+            //std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
             if( rule < ERROR_CODE) //
             {
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
                 std::list<std::string> tmpSymbolsWithoutSemanticActions; //Use to reverse
-                std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
+                //std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
                 myfile << symbolFromStack << "   ->   " ;
                 for(auto symbol : productions.find(rule)->second)
                 {
-                    std::cout<<symbol<<"   ";
+                    //std::cout<<symbol<<"   ";
                     myfile << symbol<<"   " ;
                     tmpSymbols.push_back(symbol);
                     //Do not put semantic actions into derivation
@@ -194,7 +194,7 @@ void Parser::tableDrivenParserAlgorithm()
                         tmpSymbolsWithoutSemanticActions.push_back(symbol);
                     }
                 }
-                std::cout<<std::endl;
+                //std::cout<<std::endl;
                 myfile << std::endl;
                 stackInverseDerivation.pop_back();
                 it = std::find(derivation.begin(), derivation.end(), symbolFromStack);
@@ -216,7 +216,6 @@ void Parser::tableDrivenParserAlgorithm()
     std::cout<<"Algorithm finished!!!!!!!\n";
     printDerivation();
     printInverseDerivation();
-    Semantic::printSymbolTable("global");
-    Semantic::printSymbolTable("f1");
+    Semantic::printSymbolTable();
+    Semantic::printSemanticStack();
 }
-

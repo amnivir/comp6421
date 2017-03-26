@@ -46,12 +46,12 @@ bool Lex::isFinalState(int state)
 {
     if(stateFinalToken.find(state) == stateFinalToken.end())
     {
-        std::cout<<"NOT final State! state="<<state<<std::endl;
+        //std::cout<<"NOT final State! state="<<state<<std::endl;
         return false;
     }
     else
     {
-        std::cout<<"Final state! state="<<state<<std::endl;
+        //std::cout<<"Final state! state="<<state<<std::endl;
         return true;
     }
 }
@@ -76,13 +76,13 @@ std::string Lex::createToken(int state, std::string& token)
         for (auto &keyword : this->keywords )
             if(keyword == token)
             {
-                std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<
-                        " converted to Keyword"<<std::endl;
+                //std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<
+                //        " converted to Keyword"<<std::endl;
                 return "keyword";
             }
     }
 
-    std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<std::endl;
+    //std::cout<<"TokenType for state="<<state<<"  is "<<stateFinalToken.find(state)->second<<std::endl;
 
     return stateFinalToken.find(state)->second;
 }
@@ -91,27 +91,27 @@ int Lex::charType(char lookup, int state)
 {
     if (isalpha(lookup))
     {
-        std::cout << "previous state=" << state << std::endl;
-        std::cout << "regexPosition=" << regexPosition.find('l')->second << std::endl;
+        //std::cout << "previous state=" << state << std::endl;
+        //std::cout << "regexPosition=" << regexPosition.find('l')->second << std::endl;
         state = transistionTable[state - 1][regexPosition.find('l')->second - 1];
-        std::cout << "Found alpha=" << lookup << "Current  state=" << state << std::endl;
+        //std::cout << "Found alpha=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (isdigit(lookup))
     {
-        std::cout << "previous state=" << state << std::endl;
-        std::cout << "regexPosition=" << regexPosition.find('d')->second << std::endl;
+        //std::cout << "previous state=" << state << std::endl;
+        //std::cout << "regexPosition=" << regexPosition.find('d')->second << std::endl;
         state = transistionTable[state - 1][regexPosition.find('d')->second - 1];
-        std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
+        //std::cout << "Found digit=" << lookup << "Current  state=" << state << std::endl;
     }
     else if (lookup == '{' || lookup == '}' || lookup == '(' || lookup == '*' || lookup == ')'
             || lookup == '[' || lookup == ']'|| lookup == ' ' || lookup == ',' || lookup == '.'
                     || lookup == ':' || lookup == '=' || lookup == '<' || lookup == '>' || lookup == ';'
                             || lookup == '+' || lookup == '/' || lookup == '-')
     {
-        std::cout << "previous state=" << state << std::endl;
-        std::cout << "regexPosition=" << regexPosition.find(lookup)->second << std::endl;
+        //std::cout << "previous state=" << state << std::endl;
+        //std::cout << "regexPosition=" << regexPosition.find(lookup)->second << std::endl;
         state = transistionTable[state - 1][regexPosition.find(lookup)->second - 1];
-        std::cout << "Found alpha_numeric=" << lookup << "Current state=" << state << std::endl;
+        //std::cout << "Found alpha_numeric=" << lookup << "Current state=" << state << std::endl;
     }
     return state;
 }
@@ -223,7 +223,7 @@ void Lex::printTokens()
 {
     for (auto& token : tokenList)
     {
-        std::cout << "Valid Token:" << token << std::endl;
+        //std::cout << "Valid Token:" << token << std::endl;
     }
 }
 
@@ -268,13 +268,13 @@ void Lex::findTokenTypeAndBuildList()
 
     std::string token;
     char lookup;
-    std::cout<<"RawToken=   "<<rawToken<<std::endl;
+    //std::cout<<"RawToken=   "<<rawToken<<std::endl;
     token.clear();
     do
     {
         lookup = this->nextChar();
-        std::cout<<"Lookup="<<"'"<<lookup<<"'"<<std::endl;
-        std::cout<<"Token="<<"'"<<token<<"'"<<std::endl;
+        //std::cout<<"Lookup="<<"'"<<lookup<<"'"<<std::endl;
+        //std::cout<<"Token="<<"'"<<token<<"'"<<std::endl;
         state = charType(lookup, state);
         bool isFinalStateBool = isFinalState(state);
 
@@ -284,9 +284,9 @@ void Lex::findTokenTypeAndBuildList()
             {
                 token += lookup;
             }
-            std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
-            std::cout<<"Token State='"<<state<<"'"<<std::endl;
-            std::cout<<"Token State='"<<createToken(state,token)<<"'"<<std::endl;
+            //std::cout<<"Pushing Token='"<<token<<"'"<<std::endl;
+            //std::cout<<"Token State='"<<state<<"'"<<std::endl;
+            //std::cout<<"Token State='"<<createToken(state,token)<<"'"<<std::endl;
 
             if (state != 39) // Ignore comments, comment has a state = 39
             {
@@ -297,7 +297,7 @@ void Lex::findTokenTypeAndBuildList()
             token.clear();
             if(charBackTrack.find(state)->second == 'y')
             {
-                std::cout<<"Backing one character!"<<std::endl;
+                //std::cout<<"Backing one character!"<<std::endl;
                 backupChar();
                 state = 1;
                 continue;
@@ -307,9 +307,9 @@ void Lex::findTokenTypeAndBuildList()
         else if(isFinalStateBool  && token.empty() && lookup!= '\0')
         {
             std::string lookupStr(std::string(1,lookup));
-            std::cout<<"Pushing loookup='"<<lookup<<"'"<<std::endl;
-            std::cout<<"Token State='"<<state<<"'"<<std::endl;
-            std::cout<<"Token State='"<<createToken(state,lookupStr)<<"'"<<std::endl;
+//            std::cout<<"Pushing loookup='"<<lookup<<"'"<<std::endl;
+//            std::cout<<"Token State='"<<state<<"'"<<std::endl;
+//            std::cout<<"Token State='"<<createToken(state,lookupStr)<<"'"<<std::endl;
             tokenList.push_back(lookupStr);
             buildTokenDataStructureAndAddToList(std::string(1,lookup),createToken(state,lookupStr));
             state = 1;
@@ -318,7 +318,7 @@ void Lex::findTokenTypeAndBuildList()
         else if(lookup!=' ') //ignore spaces
         {
             token += lookup;
-            std::cout<<"Concat lookup and previous token! Token="<<token<<std::endl;
+//            std::cout<<"Concat lookup and previous token! Token="<<token<<std::endl;
         }
     }
     while(lookup!='\0');

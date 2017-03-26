@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <list>
 #include <Syntatic.hh>
 #ifndef SRC_SEMANTIC_H_
 #define SRC_SEMANTIC_H_
@@ -49,12 +50,20 @@ public:
     static std::map <std::string,std::string> nonTerminalSymValue;
 
     /*
+     * This is a semantic stack that where attributes are gathered and propagated across tree node
+     * Since this is a map the insertion order is not maintained so Vector is used in conjunction
+     */
+    //static std::map<std::string,std::string> semanticStack;
+    //static std::vector<std::string,std::string> sdemanticStack;
+    static std::vector < std::pair<std::string, std::string> > semanticStack;
+    //v.push_back(std::pair<std::string,std::string>("y","2"));
+
+    /*
      * Print all the symbol tables
      */
-    /*
-     *Prints the Symbol Table
-     */
-    static void printSymbolTable(const std::string&);
+    static void printSymbolTable();
+
+    static void printSemanticStack();
 
     virtual ~Semantic();
 };
