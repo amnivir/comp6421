@@ -69,21 +69,20 @@ TEST_F(SemanticTest,SymbolTableFull)
     //    /*
     //     * Check the Lexical Analyzer, token list should have 132 tokens
     //     */
-    EXPECT_EQ(l.tokenList.size(), 132);
+    EXPECT_EQ(132,l.tokenList.size());
 
     Parser p(l.getTokenDSList());
 
+    //push '$' for the input to parser
     p.inputSemanticValue.push_back(tv);
-    //
-    //   //Parser Input contains 132 tokens + '$' as 133th token
 
+    //Parser Input contains 132 tokens + '$' as 133th token
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
-    //
-    //
+
     //    //Start parsing
     p.tableDrivenParserAlgorithm();
-    //
-    //    //At the end of parsing the STACK should have only one element i.e. $
+
+    //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);
     EXPECT_EQ(p.stackInverseDerivation.front(),"$");
     //
@@ -96,11 +95,63 @@ TEST_F(SemanticTest,SymbolTableFull)
     //Table global contains 5 symbols--> f1 , f2, MyClass1, MyClass2, program
     EXPECT_EQ(Semantic::symbolTables.find("global")->second.size(),5);
 
-    //Table program contains 3
+    //Table program contains 3 i.e. m1, m2 and a empty symbol(due to implementation)
     EXPECT_EQ(Semantic::symbolTables.find("program")->second.size(),3);
 
-    //Table program contains 4
-    EXPECT_EQ(Semantic::symbolTables.find("f1")->second.size(),4);
+    //Table f1 contains 5 i.e. fp1 , fp2, fv1, fv2 and a empty line
+    EXPECT_EQ(5,Semantic::symbolTables.find("f1")->second.size());
+
+    //Table f2 contains a empty line
+    EXPECT_EQ(1,Semantic::symbolTables.find("f2")->second.size());
+
+    //Table MyClass2 contains    fp1,  m2 ,mc1v1 a empty line
+    EXPECT_EQ(4,Semantic::symbolTables.find("MyClass2")->second.size());
+
+    //Table MyClass1 contains  f2, mc1f1, mc1v1, mc1v2 mc1v3 a empty line
+    EXPECT_EQ(6,Semantic::symbolTables.find("MyClass1")->second.size());
+
+    //Table MyClass1:f2 contains  f2p1, mc1v1  a empty line
+    EXPECT_EQ(3,Semantic::symbolTables.find("MyClass1:f2")->second.size());
+
+    //Table MyClass1:mc1f1 contains  fv1, p1, p2  a empty line
+    EXPECT_EQ(4,Semantic::symbolTables.find("MyClass1:mc1f1")->second.size());
+
+    //Next step is to test this table : MyClass1 for its name, kind , type and link
+    //+--------------------------------MyClass1--------------------------------------------+
+    //                Name                Kind                type                link
+    //
+    //                  f2            function                  f2                  f2
+    //               mc1f1            function               mc1f1               mc1f1
+    //               mc1v1            variable           int[2][4]                NONE
+    //               mc1v2            variable               float                NONE
+    //               mc1v3            variable         MyClass2[3]                NONE
+    //+-----------------------------------------------------------------------------------+
+
+    SymbolInfo symInfo;
+    symInfo = Semantic::symbolTables["MyClass1"]["f2"];
+    EXPECT_EQ("function",symInfo.kind);
+    EXPECT_EQ("int",symInfo.type);
+    EXPECT_EQ("MyClass1:f2",symInfo.link);
+
+    symInfo = Semantic::symbolTables["MyClass1"]["mc1f1"];
+    EXPECT_EQ("function",symInfo.kind);
+    EXPECT_EQ("int",symInfo.type);
+    EXPECT_EQ("MyClass1:mc1f1",symInfo.link);
+
+    symInfo = Semantic::symbolTables["MyClass1"]["mc1v1"];
+    EXPECT_EQ("variable",symInfo.kind);
+    EXPECT_EQ("int[2][4]",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
+
+    symInfo = Semantic::symbolTables["MyClass1"]["mc1v2"];
+    EXPECT_EQ("variable",symInfo.kind);
+    EXPECT_EQ("float",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
+
+    symInfo = Semantic::symbolTables["MyClass1"]["mc1v3"];
+    EXPECT_EQ("variable",symInfo.kind);
+    EXPECT_EQ("MyClass2[3]",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
 }
 
 TEST_F(SemanticTest,SymbolTableGlobalFunctions)
@@ -157,8 +208,8 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
     EXPECT_EQ(5,Semantic::symbolTables.find("global")->second.size());
 
 
-     //Table contains 1 symbols--> "" (empty by default);
-     EXPECT_EQ(1,Semantic::symbolTables.find("program")->second.size());
+    //Table contains 1 symbols--> "" (empty by default);
+    EXPECT_EQ(1,Semantic::symbolTables.find("program")->second.size());
 }
 
 
@@ -265,3 +316,107 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
     EXPECT_EQ(1,Semantic::symbolTables.find("program")->second.size());
 }
 
+
+
+
+TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; x = multiply ( x ) ; }; "
+            "int randomize ( int x ){ return (x*x); };";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+//    /*
+//     * Check the Lexical Analyzer, token list should have 39 tokens
+//     */
+//    EXPECT_EQ(60,l.tokenList.size());
+//
+//    /*
+//     * Send the tokens from Lex to Parser
+//     */
+    Parser p(l.getTokenDSList());
+//
+//    //insert '$' for the parse input
+    p.inputSemanticValue.push_back(tv);
+//
+//    //Parser Input contains 60 tokens + '$' as 61st token
+//    EXPECT_EQ(p.inputSemanticValue.size(),61);
+//
+//    // based on grammar
+//    EXPECT_EQ(p.productions.size(), 93);
+//
+//    //Start parsing
+    p.tableDrivenParserAlgorithm();
+//
+//    //    //At the end of parsing the STACK should have only one element i.e. $
+//    EXPECT_EQ(1,p.stackInverseDerivation.size());
+//    EXPECT_EQ("$",p.stackInverseDerivation.front());
+//
+//    //At the end of parsing the Derivation stack should be equal to input
+//    EXPECT_EQ(60,p.derivation.size());
+//
+//    //6 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
+//    EXPECT_EQ(Semantic::symbolTables.size(),6);
+//
+//    //Table contains 5 symbols--> fp1 fp2 v1 v2 and "" (empty by default);
+//    EXPECT_EQ(7,Semantic::symbolTables.find("f1")->second.size());
+//
+//    SymbolInfo symInfo;
+//    symInfo = Semantic::symbolTables["f1"]["fp1"];
+//    EXPECT_EQ("parameter",symInfo.kind);
+//    EXPECT_EQ("int[2][4]",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["fp2"];
+//    EXPECT_EQ("parameter",symInfo.kind);
+//    EXPECT_EQ("float",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["fp1"];
+//    EXPECT_EQ("parameter",symInfo.kind);
+//    EXPECT_EQ("int[2][4]",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["mc"];
+//    EXPECT_EQ("parameter",symInfo.kind);
+//    EXPECT_EQ("MyClass2[5]",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["mc1"];
+//    EXPECT_EQ("variable",symInfo.kind);
+//    EXPECT_EQ("MyClass2[5]",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["v1"];
+//    EXPECT_EQ("variable",symInfo.kind);
+//    EXPECT_EQ("int[10]",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    symInfo = Semantic::symbolTables["f1"]["v2"];
+//    EXPECT_EQ("variable",symInfo.kind);
+//    EXPECT_EQ("float",symInfo.type);
+//    EXPECT_EQ("NONE",symInfo.link);
+//
+//    //Table contains 1 symbols--> "" (empty by default);
+//    EXPECT_EQ(1,Semantic::symbolTables.find("f2")->second.size());
+//
+//
+//    //Table contains 1 symbols--> "" (empty by default);
+//    EXPECT_EQ(1,Semantic::symbolTables.find("MyClass1")->second.size());
+//
+//    //Table contains 1 symbols--> "" (empty by default);
+//    EXPECT_EQ(1,Semantic::symbolTables.find("MyClass2")->second.size());
+//
+//    //Table contains 1 symbols--> "" (empty by default);
+//    EXPECT_EQ(1,Semantic::symbolTables.find("program")->second.size());
+}

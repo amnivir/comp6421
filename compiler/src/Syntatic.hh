@@ -202,11 +202,11 @@ public:
             {2,  {"class", "id","CREATE_CLASS_ENTRY_TABLE","{" ,"RvarDeclfuncDef", "}" ,"END_FUNCTION",";"}},        //T
             {3, {"program","CREATE_PROGRAM_ENTRY", "funcBody", ";", "N_funcDef"}},    //Tp
             //Function declaration ex. int func1 (int x[10], float x[10][20])
-            {4,  {"type","id","CREATE_FUNCTION_ENTRY","(", "fParams",")","CREATE_PARAMETER_DIMENSIONS","funcBody",";"}},
+            {4,  {"type","id","COPY_ID","CREATE_FUNCTION_ENTRY","(", "fParams",")","CREATE_PARAMETER_DIMENSIONS","funcBody",";"}},
             {5, { "{", "N_funcBody", "}","END_FUNCTION"}},         //Ep
             {6,  {"type", "id","COPY_ID", "N_varDeclFunctDef"}},    //F
             {7, {"EPSILON"}},    //Ep
-            {8, {"(","fParams",")","funcBody",";","RvarDeclfuncDef"}},         //Ep
+            {8, {"CREATE_FUNCTION_ENTRY","(","fParams",")","CREATE_PARAMETER_DIMENSIONS","funcBody",";","RvarDeclfuncDef"}},         //Ep
             {9, {"N_arraySize","WRITE_VARIABLE_DIMENSION",";","CREATE_VARIABLE_DIMENSIONS","RvarDeclfuncDef"}},         //Tp
             {10, {".","id","N_indiceIdnest"}},    //Tp
             {11,  {"[","arithExpr","]","N_indiceIdnest"}},              //F

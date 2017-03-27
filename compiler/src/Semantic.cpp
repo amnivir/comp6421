@@ -80,6 +80,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         name = stv.tds.value;
         symInfo.kind = "class";
         symInfo.type = "";
+        symInfo.link = name;
         //Enter the class name in global table
         symbolTables["global"][name] = symInfo;
         //create the empty class table
@@ -98,6 +99,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         name = "program";
         symInfo.kind = "function";
         symInfo.type = "";
+        symInfo.link = name;
         Semantic::symbolTables["global"][name] = symInfo;
         //create the empty class table
         symbolTables[name][EMPTY] = emptySymInfo;
@@ -112,18 +114,30 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
      */
     else if(symbolFromStack == "CREATE_FUNCTION_ENTRY")
     {
+        std::string scopedFunctionName ="";
         name = stv.tds.value;
         symInfo.kind = "function";
         //Function type
-        symInfo.type = Semantic::semanticStack.back().second;
-        //Name of the function
-        symInfo.link = name;
-        Semantic::symbolTables["global"][name] = symInfo;
-        //create the empty class table
-        symbolTables[name][EMPTY] = emptySymInfo;
-        currentTable.push_back(name);
         //semantic stack contains the type of the function name so pop it as it is already written
         Semantic::semanticStack.pop_back();
+        symInfo.type = Semantic::semanticStack.back().second;
+        //Semantic::semanticStack.pop_back();
+        //Name of the function
+
+        scopedFunctionName = name;
+
+        if(currentTable.size() >= 2)
+        {
+            scopedFunctionName = currentTable.back() + ":" + name;
+        }
+
+        symInfo.link = scopedFunctionName;
+        Semantic::symbolTables[currentTable.back()][name] = symInfo;
+        //create the empty class table
+        symbolTables[scopedFunctionName][EMPTY] = emptySymInfo;
+        currentTable.push_back(scopedFunctionName);
+
+
     }
 
     else if(symbolFromStack == "COPY_ARRAY_SIZE")
