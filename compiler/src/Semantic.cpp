@@ -5,10 +5,12 @@
  *      Author: eshinig
  */
 
+#include <Exceptions.hh> // for Semantic exceptions
 #include <Semantic.h>
 #include <iomanip>
 #include <iostream>
 #include <algorithm>
+
 
 /**
  * Definition of static variables
@@ -18,9 +20,7 @@ std::map < std::string, std::map<std::string, SymbolInfo>  > Semantic::symbolTab
 std::map <std::string,std::string> Semantic::nonTerminalSymValue = {};
 std::vector < std::pair<std::string, std::string> > Semantic::semanticStack = {};
 
-Semantic::Semantic()
-{
-}
+
 const std::vector<std::string>  Semantic::semanticActions = {
         "CREATE_GLOBAL_TABLE",
         "CREATE_CLASS_ENTRY_TABLE",
@@ -145,10 +145,6 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         std::string tmp;
         name = stv.tds.value;
         tmp = name;
-        std::cout<<"COPY_ARRAY_SIZE="<<name;
-        nonTerminalSymValue["arraySize"] = nonTerminalSymValue["arraySize"] +
-                "[" + name + "]";
-        std::cout<<"ARRAY_SIZE"<<nonTerminalSymValue["arraySize"]<<std::endl;
 
         if(Semantic::semanticStack.front().first == "arraySize")
         {
@@ -156,22 +152,18 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
             Semantic::semanticStack.pop_back();
             tmp = tmp +" "+ name;
         }
+
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arraySize",tmp));
     }
 
     else if(symbolFromStack == "COPY_TYPE")
     {
-        std::cout<<"TYPE="<<stv.syntacticValue<<"  "<<stv.tds.value<<std::endl;
-        nonTerminalSymValue["type"] = stv.syntacticValue;
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("type",stv.tds.value));
     }
 
     else if(symbolFromStack == "COPY_ID")//creates new table with parameter
     {
-        //name = stv.tds.value;
-        std::cout<<"COPY_ID\n";
         name = stv.tds.value;//id
-        nonTerminalSymValue["id_value"]=name;
         /*
          * type--> FloatOrInt
          * FloatOrInt--> Float / Int, so bypass FloatOrInt i.e. type -->Float/Int
@@ -181,13 +173,11 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
     else if(symbolFromStack == "WRITE_PARAMETER_DIMENSION")
     {
-        std::cout<<"WRITE_PARAMETER_DIMENSION"<<std::endl;
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("parameter",name));
-        nonTerminalSymValue.clear();
     }
+
     else if(symbolFromStack == "WRITE_VARIABLE_DIMENSION")
     {
-        std::cout<<"WRITE_VARIABLE_DIMENSION"<<std::endl;
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("variable",name));
     }
 
@@ -234,10 +224,11 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
                 break;
         }
 
-        std::cout<<"CREATE_PARAMETER_DIMENSIONS \n Printing Stack inside the function\n";
-        Semantic::printSemanticStack();
     }
 
+    /*
+     * this statement creates the symbol
+     */
     else if(symbolFromStack == "CREATE_VARIABLE_DIMENSIONS")
     {
         if(Semantic::semanticStack.size() == 0)
@@ -270,14 +261,19 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
             symInfo.kind = "variable";
             symInfo.type = id_type.append(id_arraysize);
-            Semantic::symbolTables[currentTable.back()][id_value] = symInfo;
+            if(!Semantic::doesSymbolExist(currentTable.back(),id_value))
+            {
+                Semantic::symbolTables[currentTable.back()][id_value] = symInfo;
+            }
+            else
+            {
+                std::cerr<<"Multiple Definition of Symbol:"<<id_value<<"\n";
+                throw SemanticException("Multiple Definition of Symbol: "+id_value);
+            }
 
             if(Semantic::semanticStack.size() == 0)
                 break;
         }
-
-        std::cout<<"CREATE_VARIABLE_DIMENSIONS \n Printing Stack inside the function\n";
-        Semantic::printSemanticStack();
     }
 
     /*
@@ -292,8 +288,21 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         }
     }
 }
+
 Semantic::~Semantic()
 {
+}
+
+bool Semantic::doesSymbolExist(const std::string& currentTableName, std::string& symbolName)
+{
+    if(symbolTables[currentTableName].count(symbolName)==1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void Semantic::printSymbolTable()

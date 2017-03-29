@@ -26,7 +26,11 @@ struct SymbolInfo
 class Semantic
 {
 public:
-    Semantic();
+    /*
+     * returns true if symbol exist in the symbol table
+     */
+    static bool doesSymbolExist(const std::string& currentTableName, std::string& symbolName);
+
     static void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&);
 
     static const std::vector<std::string> semanticActions ;

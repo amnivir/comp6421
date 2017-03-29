@@ -5,6 +5,7 @@
  *      Author: eshinig
  */
 #include <LexicalAnalyzer.hh>
+#include <Exceptions.hh>
 #include <Syntatic.hh>
 #include <Semantic.h>
 #include "gtest/gtest.h"
@@ -31,6 +32,7 @@ public:
 
     void SetUp()
     {
+        Semantic::semanticStack.clear();
     }
 
     void TearDown()
@@ -38,6 +40,7 @@ public:
         Semantic::currentTable.clear();
         Semantic::nonTerminalSymValue.clear();
         Semantic::symbolTables.clear();
+        Semantic::semanticStack.clear();
     }
 
 };
@@ -330,93 +333,135 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
             "class MyClass2 "
             "{"
             "};"
-            "program { int x ; x = multiply ( x ) ; }; "
-            "int randomize ( int x ){ return (x*x); };";
+            "program { int x ; int y[10]; x = square ( x ) ; }; "
+            "int square ( int x ){ return (x*x); };";
 
     l.findTokenTypeAndBuildList();
     l.printTokenDataStruct();
 
-//    /*
-//     * Check the Lexical Analyzer, token list should have 39 tokens
-//     */
-//    EXPECT_EQ(60,l.tokenList.size());
-//
-//    /*
-//     * Send the tokens from Lex to Parser
-//     */
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 39 tokens
+    //     */
+    EXPECT_EQ(46,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
     Parser p(l.getTokenDSList());
-//
-//    //insert '$' for the parse input
+    //
+    //    //insert '$' for the parse input
     p.inputSemanticValue.push_back(tv);
+    //
+    //    //Parser Input contains 46 tokens + '$' as 47th token
+    EXPECT_EQ(47,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and no exception should be thrown
+    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
+    //    //Start parsing
+//    +--------------------------------MyClass1--------------------------------------------+
+//                    Name                Kind                type                link
 //
-//    //Parser Input contains 60 tokens + '$' as 61st token
-//    EXPECT_EQ(p.inputSemanticValue.size(),61);
+//    +-----------------------------------------------------------------------------------+
+//    +--------------------------------MyClass2--------------------------------------------+
+//                    Name                Kind                type                link
 //
-//    // based on grammar
-//    EXPECT_EQ(p.productions.size(), 93);
+//    +-----------------------------------------------------------------------------------+
+//    +--------------------------------global--------------------------------------------+
+//                    Name                Kind                type                link
+//                MyClass1               class                                MyClass1
+//                MyClass2               class                                MyClass2
+//                 program            function                                 program
+//                  square            function                 int              square
+//    +-----------------------------------------------------------------------------------+
+//    +--------------------------------program--------------------------------------------+
+//                    Name                Kind                type                link
 //
-//    //Start parsing
-    p.tableDrivenParserAlgorithm();
+//                       x            variable                 int                NONE
+//                       y            variable             int[10]                NONE
+//    +-----------------------------------------------------------------------------------+
+//    +--------------------------------square--------------------------------------------+
+//                    Name                Kind                type                link
 //
-//    //    //At the end of parsing the STACK should have only one element i.e. $
-//    EXPECT_EQ(1,p.stackInverseDerivation.size());
-//    EXPECT_EQ("$",p.stackInverseDerivation.front());
-//
-//    //At the end of parsing the Derivation stack should be equal to input
-//    EXPECT_EQ(60,p.derivation.size());
-//
-//    //6 tables are created i.e. global, f1, f2, MyClass1,MyClass2,program
-//    EXPECT_EQ(Semantic::symbolTables.size(),6);
-//
-//    //Table contains 5 symbols--> fp1 fp2 v1 v2 and "" (empty by default);
-//    EXPECT_EQ(7,Semantic::symbolTables.find("f1")->second.size());
-//
-//    SymbolInfo symInfo;
-//    symInfo = Semantic::symbolTables["f1"]["fp1"];
-//    EXPECT_EQ("parameter",symInfo.kind);
-//    EXPECT_EQ("int[2][4]",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["fp2"];
-//    EXPECT_EQ("parameter",symInfo.kind);
-//    EXPECT_EQ("float",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["fp1"];
-//    EXPECT_EQ("parameter",symInfo.kind);
-//    EXPECT_EQ("int[2][4]",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["mc"];
-//    EXPECT_EQ("parameter",symInfo.kind);
-//    EXPECT_EQ("MyClass2[5]",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["mc1"];
-//    EXPECT_EQ("variable",symInfo.kind);
-//    EXPECT_EQ("MyClass2[5]",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["v1"];
-//    EXPECT_EQ("variable",symInfo.kind);
-//    EXPECT_EQ("int[10]",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    symInfo = Semantic::symbolTables["f1"]["v2"];
-//    EXPECT_EQ("variable",symInfo.kind);
-//    EXPECT_EQ("float",symInfo.type);
-//    EXPECT_EQ("NONE",symInfo.link);
-//
-//    //Table contains 1 symbols--> "" (empty by default);
-//    EXPECT_EQ(1,Semantic::symbolTables.find("f2")->second.size());
-//
-//
-//    //Table contains 1 symbols--> "" (empty by default);
-//    EXPECT_EQ(1,Semantic::symbolTables.find("MyClass1")->second.size());
-//
-//    //Table contains 1 symbols--> "" (empty by default);
-//    EXPECT_EQ(1,Semantic::symbolTables.find("MyClass2")->second.size());
-//
-//    //Table contains 1 symbols--> "" (empty by default);
-//    EXPECT_EQ(1,Semantic::symbolTables.find("program")->second.size());
+//                       x           parameter                 int                NONE
+//    +-----------------------------------------------------------------------------------+
+
+
+    //    //At the end of parsing the STACK should have only one element i.e. $
+    EXPECT_EQ(1,p.stackInverseDerivation.size());
+    EXPECT_EQ("$",p.stackInverseDerivation.front());
+
+    //At the end of parsing the Derivation stack should be equal to input
+    EXPECT_EQ(46,p.derivation.size());
+
+    //5 tables are created i.e. global, MyClass1,MyClass2,program, square
+    EXPECT_EQ(5,Semantic::symbolTables.size());
+
+    //Table program contains 3 symbols--> x , y and "" (empty by default);
+    EXPECT_EQ(3,Semantic::symbolTables.find("program")->second.size());
+
+    SymbolInfo symInfo;
+    symInfo = Semantic::symbolTables["program"]["x"];
+    EXPECT_EQ("variable",symInfo.kind);
+    EXPECT_EQ("int",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
+
+    symInfo = Semantic::symbolTables["program"]["y"];
+    EXPECT_EQ("variable",symInfo.kind);
+    EXPECT_EQ("int[10]",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
+
+    //Table square contains 2 symbols--> x "" (empty by default);
+    EXPECT_EQ(2,Semantic::symbolTables.find("square")->second.size());
+    symInfo = Semantic::symbolTables["square"]["x"];
+    EXPECT_EQ("parameter",symInfo.kind);
+    EXPECT_EQ("int",symInfo.type);
+    EXPECT_EQ("NONE",symInfo.link);
+
+    //Table gloabl contains 4 symbols-->  MyClass1,MyClass2,program, square
+    EXPECT_EQ(4,Semantic::symbolTables.find("global")->second.size());
+}
+
+
+TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int x[10]; x = square ( x ) ; }; "
+            "int square ( int x ){ return (x*x); };";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 39 tokens
+    //     */
+    EXPECT_EQ(46,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //insert '$' for the parse input
+    p.inputSemanticValue.push_back(tv);
+    //
+    //    //Parser Input contains 46 tokens + '$' as 47th token
+    EXPECT_EQ(47,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_THROW(p.tableDrivenParserAlgorithm(),SemanticException);
 }
