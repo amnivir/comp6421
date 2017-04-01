@@ -36,7 +36,10 @@ public:
     static const std::vector<std::string> semanticActions ;
     static bool isSemanticAction(const std::string& symbolFromStack);
 
-
+    /*
+     * check types during assignment operation through symbol table, i.e if A = B, then check type of A is equal to B
+     */
+    static bool isTypesEqualInAssignment(const std::string left, const std::string right);
     /**
      * This is stack of the tables created during the creation of Symbol table
      */

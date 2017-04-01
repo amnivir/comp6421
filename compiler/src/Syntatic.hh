@@ -212,21 +212,21 @@ public:
             {11,  {"[","arithExpr","]","N_indiceIdnest"}},              //F
             {12,  {"EPSILON"}},        //T
             {13,  {"id","COPY_ID","N_arraySize","WRITE_VARIABLE_DIMENSION",";","CREATE_VARIABLE_DIMENSIONS","N_funcBody"}},              //F
-            {14,  {"N_indiceIdnest", "assignOp", "expr", ";", "N_statement"}},        //E
+            {14,  {"N_indiceIdnest", "assignOp", "COPY_ASSIGNMENT","expr", ";" ,"TYPE_CHECK", "N_statement"}},        //E
             {15, {"FloatOrInt", "id", "COPY_ID","N_arraySize","WRITE_VARIABLE_DIMENSION", ";", "CREATE_VARIABLE_DIMENSIONS","N_funcBody"}},    //Ep
             {16,  {"id","COPY_TYPE", "N_varDeclStatement"}},        //T
             {17,  {"statementNoID", "N_statement"}},              //F
             {18, {"EPSILON"}},         //Tp
             {19,  {"statementNoID"}},              //F
             {20,  {"assignmentStatment"}},
-            {21,  {"variable", "assignOp", "expr", ";"}},              //F
-            {22,  {"for", "(", "type", "id", "assignOp", "expr", ";", "relExpr", ";",
+            {21,  {"variable", "assignOp", "COPY_ASSIGNMENT","expr", ";" ,"TYPE_CHECK"}},              //F
+            {22,  {"for", "(", "type", "id", "assignOp","COPY_ASSIGNMENT", "expr", ";", "TYPE_CHECK","relExpr", ";",
                     "assignStat", ")", "statBlock", ";"}},        //E
                     {23, {"if", "(", "expr", ")", "then", "statBlock", "else", "statBlock", ";"}},         //Ep
                     {24, {"get", "(", "variable", ")", ";"}},         //Ep
                     {25,  {"put", "(", "expr", ")" ,";"}},        //T
                     {26,  {"return", "(", "expr", ")" ,";"}},        //T
-                    {27,  {"variable", "assignOp" ,"expr"}},        //T//T
+                    {27,  {"variable", "assignOp" ,"expr","TYPE_CHECK"}},        //T//T
                     {28,  {"{","N_statement","}"}},        //T
                     {29,  {"statement"}},    //Tp
                     {30,  {"EPSILON"}},              //F
@@ -248,7 +248,7 @@ public:
                     {46,  {"not", "factor"}},//F
                     {47,  {"variable", "factor_"}},//F
                     {48,  {"sign", "factor"}},//F
-                    {49, {"id","N_indice","N_idnest"}},         //Ep
+                    {49, {"id","COPY_ID","N_indice","N_idnest"}},         //Ep
                     {50,  {"idnest_","N_idnest" }},        //E
                     {51,  {"EPSILON"}},        //T
                     {52,  {".","id","N_indice"}},        //T

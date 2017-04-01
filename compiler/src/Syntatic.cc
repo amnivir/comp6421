@@ -23,7 +23,6 @@ Parser::Parser()
         tv.tds.value=str;
         inputSemanticValue.push_back(tv);
     }
-
 }
 
 Parser::Parser(std::list<TokenDS> tokenDSList)

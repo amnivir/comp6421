@@ -333,7 +333,7 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
             "class MyClass2 "
             "{"
             "};"
-            "program { int x ; int y[10]; x = square ( x ) ; }; "
+            "program { int x ; int y[10]; }; "
             "int square ( int x ){ return (x*x); };";
 
     l.findTokenTypeAndBuildList();
@@ -342,7 +342,7 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
     //    /*
     //     * Check the Lexical Analyzer, token list should have 39 tokens
     //     */
-    EXPECT_EQ(46,l.tokenList.size());
+    EXPECT_EQ(39,l.tokenList.size());
     //
     //    /*
     //     * Send the tokens from Lex to Parser
@@ -352,8 +352,8 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
     //    //insert '$' for the parse input
     p.inputSemanticValue.push_back(tv);
     //
-    //    //Parser Input contains 46 tokens + '$' as 47th token
-    EXPECT_EQ(47,p.inputSemanticValue.size());
+    //    //Parser Input contains 39 tokens + '$' as 40th token
+    EXPECT_EQ(40,p.inputSemanticValue.size());
     //
     //    // based on grammar
     EXPECT_EQ(p.productions.size(), 93);
@@ -394,7 +394,7 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
     EXPECT_EQ("$",p.stackInverseDerivation.front());
 
     //At the end of parsing the Derivation stack should be equal to input
-    EXPECT_EQ(46,p.derivation.size());
+    EXPECT_EQ(39,p.derivation.size());
 
     //5 tables are created i.e. global, MyClass1,MyClass2,program, square
     EXPECT_EQ(5,Semantic::symbolTables.size());
@@ -464,4 +464,126 @@ TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
     //Start Parsing and semantic EXCEPTION should be thrown as
     //variable x is defined twice in program function
     EXPECT_THROW(p.tableDrivenParserAlgorithm(),SemanticException);
+}
+
+TEST_F(SemanticTest,TypeCheckingAssignment)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int y ; y = x ; }; ";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 39 tokens
+    //     */
+    EXPECT_EQ(24,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //insert '$' for the parse input
+    p.inputSemanticValue.push_back(tv);
+    //
+    //    //Parser Input contains 46 tokens + '$' as 47th token
+    EXPECT_EQ(25,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
+}
+
+
+TEST_F(SemanticTest,TypeCheckingAssignmentFail)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; float y ; y = x ; }; ";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 39 tokens
+    //     */
+    EXPECT_EQ(24,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //insert '$' for the parse input
+    p.inputSemanticValue.push_back(tv);
+    //
+    //    //Parser Input contains 46 tokens + '$' as 47th token
+    EXPECT_EQ(25,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_THROW(p.tableDrivenParserAlgorithm(),SemanticException);
+}
+
+TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int y ;}; "
+            "";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 39 tokens
+    //     */
+    EXPECT_EQ(46,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //insert '$' for the parse input
+    p.inputSemanticValue.push_back(tv);
+    //
+    //    //Parser Input contains 46 tokens + '$' as 47th token
+    EXPECT_EQ(47,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
 }

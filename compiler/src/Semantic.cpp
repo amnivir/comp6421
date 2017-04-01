@@ -34,7 +34,9 @@ const std::vector<std::string>  Semantic::semanticActions = {
         "WRITE_PARAMETER_DIMENSION", // Function paramaters i.e float randomoze( int x [10] ){}
         "WRITE_VARIABLE_DIMENSION", // Function variable i.e. float randomize() {int x[10]}
         "CREATE_VARIABLE_DIMENSIONS",
-        "END_FUNCTION"
+        "END_FUNCTION",
+        "COPY_ASSIGNMENT",// '='
+        "TYPE_CHECK" // performs type checking through symbol table
 };
 
 
@@ -240,7 +242,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
          */
         while(Semantic::semanticStack.back().first == "variable")
         {
-            Semantic::semanticStack.pop_back(); //pop "parameter"
+            Semantic::semanticStack.pop_back(); //pop "variable"
 
             while(Semantic::semanticStack.back().first == "arraySize")
             {
@@ -287,6 +289,29 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
             currentTable.pop_back();
         }
     }
+
+    else if(symbolFromStack == "COPY_ASSIGNMENT")
+    {
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("assignment","="));
+    }
+
+    else if(symbolFromStack == "TYPE_CHECK")
+    {
+        std::cout<<"PerformTypeChecking";
+        if(Semantic::semanticStack.size() == 3)
+        {
+            std::string right = Semantic::semanticStack.back().second;
+            Semantic::semanticStack.pop_back(); //pop "rvalue"
+            Semantic::semanticStack.pop_back(); //pop "="
+            std::string left = Semantic::semanticStack.back().second;
+            Semantic::semanticStack.pop_back(); //pop "lvalue"
+            if(!Semantic::isTypesEqualInAssignment(left,right))
+                throw SemanticException("Types not equal");
+        }
+        else
+            throw SemanticException("In Type Checking, the format is not 'A = B' statement has more than "
+                    "3 tokens: "+semanticStack.size());
+    }
 }
 
 Semantic::~Semantic()
@@ -329,3 +354,43 @@ void Semantic::printSemanticStack()
         std::cout << (*it).first << "  " <<(*it).second<<"\n";
     }
 }
+
+bool Semantic::isTypesEqualInAssignment(const std::string left, const std::string right)
+{
+
+    std::vector<std::string> tmp;
+    tmp = currentTable;
+    do
+    {
+        for (std::vector<std::string>::reverse_iterator  it = currentTable.rbegin() ; it != currentTable.rend(); ++it)
+        {
+            /*
+             *Check all the table from current table to parent table
+             *func1()
+             *       { int x
+             *         func2() {
+             *         int y {
+             *          func3()
+             *          { x = y} } }}
+             */
+            if(symbolTables[*it].count(left) == 1 && symbolTables[tmp.back()].count(right) == 1 &&
+                    (symbolTables[*it][left].type == symbolTables[tmp.back()][right].type))
+            {
+                return true;
+            }
+            else if(symbolTables[*it].count(right) == 1 && symbolTables[tmp.back()].count(left) == 1 &&
+                    (symbolTables[*it][right].type == symbolTables[tmp.back()][left].type))
+            {
+                return true;
+            }
+        }
+        if(tmp.size()==0)
+            break;
+        else
+            tmp.pop_back();
+    }
+    while(tmp.size()!=0);
+    //symbol not defined both in current as well as parent scopes
+    return false;
+}
+
