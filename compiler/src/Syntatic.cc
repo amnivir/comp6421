@@ -14,14 +14,16 @@ Parser::Parser()
             "float", "id", "[", "intValue", "]", ";", "}" ,";",
             "float", "id","(","int", "id", "[", "intValue", "]", ")",
             "{", "float", "id", ";", "return", "(", "intValue" ,"*", "floatValue", ")", ";", "}", ";","$"};
+    SyntaticTokenValue tv;
     for(auto str : sampleInput)
     {
-        SyntaticTokenValue tv;
+
         tv.syntacticValue = str;
         tv.tds.lineNum=1;
         tv.tds.type=NONE;
         tv.tds.value=str;
         inputSemanticValue.push_back(tv);
+        inputSemanticValueCopy.push_back(tv);//second copy
     }
 }
 
@@ -39,12 +41,12 @@ void Parser::buildInputFromLex()
     std::list<TokenDS>::iterator it;
     std::string tokenValue;
     inputSemanticValue.clear();
-
+    SyntaticTokenValue tv;
     std::string previousTokenValue = "";
 
     while(!tokenListFromLexicalAnalyser.empty())
     {
-        SyntaticTokenValue tv;
+
         it = tokenListFromLexicalAnalyser.begin();
         tv.tds.lineNum = it->lineNum;
         tv.tds.type = it->type;
@@ -80,10 +82,18 @@ void Parser::buildInputFromLex()
         }
 
         inputSemanticValue.push_back(tv);
+        inputSemanticValueCopy.push_back(tv);
         previousTokenValue = it->value;
 
         tokenListFromLexicalAnalyser.pop_front();
     }
+    tv.tds.lineNum = 0;
+    tv.tds.type = NONE;
+    tv.tds.value = "$";
+    tv.syntacticValue="$";
+
+    inputSemanticValue.push_back(tv);
+    inputSemanticValueCopy.push_back(tv);
 }
 
 bool Parser::isTerminal(std::string& x)
@@ -133,7 +143,7 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
 }
 
 
-void Parser::tableDrivenParserAlgorithm()
+void Parser::tableDrivenParserAlgorithm(bool secondPass)
 {
     std::ofstream myfile;
     myfile.open ("syntatic_output.txt");
@@ -164,7 +174,7 @@ void Parser::tableDrivenParserAlgorithm()
         else if(Semantic::isSemanticAction(symbolFromStack))
         {
             stackInverseDerivation.pop_back();
-            Semantic::performAction(symbolFromStack,previousToken);
+            Semantic::performAction(symbolFromStack,previousToken,secondPass);
         }
 
         //non terminal
@@ -217,4 +227,44 @@ void Parser::tableDrivenParserAlgorithm()
     printInverseDerivation();
     Semantic::printSymbolTable();
     Semantic::printSemanticStack();
+}
+
+void Parser::twoPassParser()
+{
+    /**
+     * in first pass, build symbol table and it should not thrown any exception
+     */
+    this->tableDrivenParserAlgorithm(false);
+    /**
+     * in second pass, verify symbol table and it should not thrown any exception
+     */
+        Semantic::semanticStack.clear();
+        //Semantic::symbolTables.clear();
+        this->stackInverseDerivation.clear();
+        this->derivation.clear();
+        Semantic::currentTable.clear();
+        this->copySyntaticTokenValueList();
+        this->tableDrivenParserAlgorithm(true);
+
+}
+
+void Parser::copySyntaticTokenValueList()
+{
+    std::string str;
+    SyntaticTokenValue stv;
+    this->inputSemanticValue.clear();
+    for(auto item : inputSemanticValueCopy)
+    {
+        stv.tds.lineNum = item.tds.lineNum;
+        stv.tds.type = item.tds.type;
+        stv.tds.value = item.tds.value;
+        stv.syntacticValue = item.syntacticValue;
+        inputSemanticValue.push_back(stv);
+    }
+    stv.tds.lineNum = 0;
+    stv.tds.type = NONE;
+    stv.tds.value = "$";
+    stv.syntacticValue="$";
+
+    inputSemanticValue.push_back(stv);
 }

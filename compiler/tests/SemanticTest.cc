@@ -24,10 +24,6 @@ public:
 
     SemanticTest()
     {
-        tv.tds.lineNum = 0;
-        tv.tds.type = NONE;
-        tv.tds.value = "$";
-        tv.syntacticValue="$";
     }
 
     void SetUp()
@@ -63,7 +59,7 @@ TEST_F(SemanticTest,SymbolTableFull)
             "MyClass2 m2[3];"
             "};"
             "program { int m1; float m2[3][2]; }; "
-            "float f1(int fp1[2][2], float fp2){ MyClass fv1[3]; int fv2;}; "
+            "float f1(int fp1[2][2], float fp2){ MyClass1 fv1[3]; int fv2;}; "
             "int f2(){};";
 
     l.findTokenTypeAndBuildList();
@@ -76,14 +72,11 @@ TEST_F(SemanticTest,SymbolTableFull)
 
     Parser p(l.getTokenDSList());
 
-    //push '$' for the input to parser
-    p.inputSemanticValue.push_back(tv);
-
     //Parser Input contains 132 tokens + '$' as 133th token
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
-    //    //Start parsing
-    p.tableDrivenParserAlgorithm();
+    //Start parsing
+    p.twoPassParser();
 
     //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);
@@ -186,8 +179,6 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
      */
     Parser p(l.getTokenDSList());
 
-    p.inputSemanticValue.push_back(tv);
-
     //Parser Input contains 28 tokens + '$' as 29th token
     EXPECT_EQ(p.inputSemanticValue.size(),29);
 
@@ -195,7 +186,7 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
     EXPECT_EQ(p.productions.size(), 93);
 
     //Start parsing
-    p.tableDrivenParserAlgorithm();
+    p.twoPassParser();
 
     //    //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);
@@ -244,8 +235,6 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
      */
     Parser p(l.getTokenDSList());
 
-    //insert '$' for the parse input
-    p.inputSemanticValue.push_back(tv);
 
     //Parser Input contains 60 tokens + '$' as 61st token
     EXPECT_EQ(p.inputSemanticValue.size(),61);
@@ -254,7 +243,7 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
     EXPECT_EQ(p.productions.size(), 93);
 
     //Start parsing
-    p.tableDrivenParserAlgorithm();
+    p.twoPassParser();
 
     //    //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(1,p.stackInverseDerivation.size());
@@ -348,18 +337,16 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
     //     * Send the tokens from Lex to Parser
     //     */
     Parser p(l.getTokenDSList());
-    //
-    //    //insert '$' for the parse input
-    p.inputSemanticValue.push_back(tv);
-    //
-    //    //Parser Input contains 39 tokens + '$' as 40th token
+
+
+    //Parser Input contains 39 tokens + '$' as 40th token
     EXPECT_EQ(40,p.inputSemanticValue.size());
     //
     //    // based on grammar
     EXPECT_EQ(p.productions.size(), 93);
 
     //Start Parsing and no exception should be thrown
-    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
+    EXPECT_NO_THROW(p.twoPassParser());
     //    //Start parsing
 //    +--------------------------------MyClass1--------------------------------------------+
 //                    Name                Kind                type                link
@@ -452,9 +439,6 @@ TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
     //     */
     Parser p(l.getTokenDSList());
     //
-    //    //insert '$' for the parse input
-    p.inputSemanticValue.push_back(tv);
-    //
     //    //Parser Input contains 46 tokens + '$' as 47th token
     EXPECT_EQ(47,p.inputSemanticValue.size());
     //
@@ -463,7 +447,7 @@ TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
 
     //Start Parsing and semantic EXCEPTION should be thrown as
     //variable x is defined twice in program function
-    EXPECT_THROW(p.tableDrivenParserAlgorithm(),SemanticException);
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
 }
 
 TEST_F(SemanticTest,TypeCheckingAssignment)
@@ -492,8 +476,6 @@ TEST_F(SemanticTest,TypeCheckingAssignment)
     //     */
     Parser p(l.getTokenDSList());
     //
-    //    //insert '$' for the parse input
-    p.inputSemanticValue.push_back(tv);
     //
     //    //Parser Input contains 46 tokens + '$' as 47th token
     EXPECT_EQ(25,p.inputSemanticValue.size());
@@ -503,7 +485,7 @@ TEST_F(SemanticTest,TypeCheckingAssignment)
 
     //Start Parsing and semantic EXCEPTION should be thrown as
     //variable x is defined twice in program function
-    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
+    EXPECT_NO_THROW(p.twoPassParser());
 }
 
 
@@ -533,8 +515,6 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFail)
     //     */
     Parser p(l.getTokenDSList());
     //
-    //    //insert '$' for the parse input
-    p.inputSemanticValue.push_back(tv);
     //
     //    //Parser Input contains 46 tokens + '$' as 47th token
     EXPECT_EQ(25,p.inputSemanticValue.size());
@@ -544,7 +524,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFail)
 
     //Start Parsing and semantic EXCEPTION should be thrown as
     //variable x is defined twice in program function
-    EXPECT_THROW(p.tableDrivenParserAlgorithm(),SemanticException);
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
 }
 
 TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
@@ -585,5 +565,37 @@ TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
 
     //Start Parsing and semantic EXCEPTION should be thrown as
     //variable x is defined twice in program function
-    EXPECT_NO_THROW(p.tableDrivenParserAlgorithm());
+    EXPECT_NO_THROW(p.twoPassParser());
+}
+
+TEST_F(SemanticTest,SymbolTableTypeNotDefined)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{ "
+            "int mc1v1[2][4]; float mc1v2; MyClass2 mc1v3[3]; "
+            "int mc1f1(int p1, MyClass2 p2[3]){ MyClass2 fv1[3];};"
+            "int f2(MyClass1 f2p1[3]){int mc1v1;};"
+            "};"
+            "program { int m1; float m2[3][2]; }; "
+            "float f1(int fp1[2][2], float fp2){ MyClass1 fv1[3]; int fv2;}; "
+            "int f2(){};";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    /*
+     * Check the Lexical Analyzer, token list should have 132 tokens
+     */
+    EXPECT_EQ(109,l.tokenList.size());
+
+    Parser p(l.getTokenDSList());
+
+    //Parser Input contains 132 tokens + '$' as 133th token
+    EXPECT_EQ(p.productions.size(), 93);// based on grammer
+
+    //Start parsing
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
 }

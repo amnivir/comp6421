@@ -29,9 +29,13 @@ public:
     Parser(std::list<TokenDS>);
     std::list<TokenDS> tokenListFromLexicalAnalyser;//TODO make this a pointer
     /*
-     * This algorithm is based on Table driven design parser
+     * To build symbol table, two pass is required. This method calls tableDrivenParserAlgorithm
+     * twice. First time no exceptions are thrown and symbol table is built
+     * In second run, Exceptions are thrown if the type is not defined.
      */
-    void tableDrivenParserAlgorithm();
+
+    void twoPassParser();
+
     std::list <std::string> derivation;
     std::list <std::string> stackInverseDerivation; //stack
     /*
@@ -296,15 +300,24 @@ public:
     };
 
     std::list <SyntaticTokenValue> inputSemanticValue;
+    std::list <SyntaticTokenValue> inputSemanticValueCopy;
 
 private:
     void printDerivation();
     void printInverseDerivation();
+    /*
+     * copies values from inputSemanticValueCopy to inputSemanticValue
+     */
+    void copySyntaticTokenValueList();
     void parseTerminalSymbol(const std::string& nonTerminal, std::string& token);
     /*
      * Reads next token from Lexical analyzer list
      */
     void buildInputFromLex();
+    /*
+     * This algorithm is based on Table driven design parser
+     */
+    void tableDrivenParserAlgorithm(bool secondPass);
 
     int currentTokenIndex;
 };

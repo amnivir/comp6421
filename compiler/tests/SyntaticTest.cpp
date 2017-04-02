@@ -51,7 +51,7 @@ TEST_F(SyntaticTest,classProgramFunction)
     ASSERT_EQ(p.productions.size(), 93);// based on grammar
 
     //Start parsing
-    p.tableDrivenParserAlgorithm();
+    p.twoPassParser();
 
     //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);
@@ -93,13 +93,6 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 
     Parser p(l.getTokenDSList());
 
-    SyntaticTokenValue tv;
-    tv.tds.lineNum = 0;
-    tv.tds.type = NONE;
-    tv.tds.value = "$";
-    tv.syntacticValue="$";
-    p.inputSemanticValue.push_back(tv);
-
    //Parser Input contains 49 tokens + '$' as 50th token
 
     EXPECT_EQ(p.inputSemanticValue.size(),50);
@@ -107,7 +100,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 
 
     //Start parsing
-    p.tableDrivenParserAlgorithm();
+    p.twoPassParser();
 
     //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);
@@ -158,7 +151,7 @@ TEST_F(SyntaticTest,classProgramFunctionForLexical)
 
 
     //Start parsing
-    p.tableDrivenParserAlgorithm();
+    p.twoPassParser();
 
     //At the end of parsing the STACK should have only one element i.e. $
     EXPECT_EQ(p.stackInverseDerivation.size(),1);

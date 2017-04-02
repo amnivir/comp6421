@@ -20,6 +20,8 @@ struct SymbolInfo
     std::string kind;// function, class,parameter,variable
     std::string type;//int,float,class
     std::string link="NONE"; //TODO create a stack of table;
+    int lineNum;
+    bool initialized = false;
     //std::map<std::string, SymbolTabel>* link = nullptr; // link to a new symboltable
 };
 
@@ -31,7 +33,12 @@ public:
      */
     static bool doesSymbolExist(const std::string& currentTableName, std::string& symbolName);
 
-    static void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&);
+    /*
+     * returns true if class type or function exist in the symbol table
+     */
+    static bool doesTypeOrFunctionExist(std::string& id_type);
+
+    static void performAction(const std::string& symbolFromStack, const SyntaticTokenValue&, bool secondPass);
 
     static const std::vector<std::string> semanticActions ;
     static bool isSemanticAction(const std::string& symbolFromStack);

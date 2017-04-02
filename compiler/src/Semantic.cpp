@@ -52,7 +52,8 @@ bool Semantic::isSemanticAction(const std::string& symbolFromStack)
     return false;
 }
 
-void Semantic::performAction(const std::string& symbolFromStack, const SyntaticTokenValue& stv)
+
+void Semantic::performAction(const std::string& symbolFromStack, const SyntaticTokenValue& stv, bool secondPass)
 {
     SymbolInfo symInfo;
     SymbolInfo emptySymInfo;
@@ -83,6 +84,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         symInfo.kind = "class";
         symInfo.type = "";
         symInfo.link = name;
+        symInfo.lineNum = stv.tds.lineNum;
         //Enter the class name in global table
         symbolTables["global"][name] = symInfo;
         //create the empty class table
@@ -102,6 +104,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         symInfo.kind = "function";
         symInfo.type = "";
         symInfo.link = name;
+        symInfo.lineNum = stv.tds.lineNum;
         Semantic::symbolTables["global"][name] = symInfo;
         //create the empty class table
         symbolTables[name][EMPTY] = emptySymInfo;
@@ -119,6 +122,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         std::string scopedFunctionName ="";
         name = stv.tds.value;
         symInfo.kind = "function";
+        symInfo.lineNum = stv.tds.lineNum;
         //Function type
         //semantic stack contains the type of the function name so pop it as it is already written
         Semantic::semanticStack.pop_back();
@@ -218,6 +222,20 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
                 Semantic::semanticStack.pop_back(); //pop "id"
             }
 
+            /*
+             * check if non-primitive type is defined
+             */
+            if(secondPass)
+            {
+                //primitive types are already defined
+                if(id_type!="int" && id_type!="float")
+                {
+                    if(!doesTypeOrFunctionExist(id_type))
+                    {
+                        throw SemanticException(+"Type not defined: "+id_type);
+                    }
+                }
+            }
             symInfo.kind = "parameter";
             symInfo.type = id_type.append(id_arraysize);
             Semantic::symbolTables[currentTable.back()][id_value] = symInfo;
@@ -229,7 +247,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
     }
 
     /*
-     * this statement creates the symbol
+     * this statement creates the variable symbol in the scoped function
      */
     else if(symbolFromStack == "CREATE_VARIABLE_DIMENSIONS")
     {
@@ -261,13 +279,32 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
                 Semantic::semanticStack.pop_back(); //pop "id"
             }
 
+            /*
+             * check if non-primitive type is defined
+             */
+            if(secondPass)
+            {
+                //primitive types are already defined
+                if(id_type!="int" && id_type!="float")
+                {
+                    if(!doesTypeOrFunctionExist(id_type))
+                    {
+                        throw SemanticException(+"Type not defined: "+id_type);
+                    }
+                }
+            }
+
             symInfo.kind = "variable";
             symInfo.type = id_type.append(id_arraysize);
+            //if symbol does not exist then write to symbol table
             if(!Semantic::doesSymbolExist(currentTable.back(),id_value))
             {
                 Semantic::symbolTables[currentTable.back()][id_value] = symInfo;
             }
-            else
+            /*
+             * in second pass do not execute this function as it has been already checked in previous run
+             */
+            else if(!secondPass)
             {
                 std::cerr<<"Multiple Definition of Symbol:"<<id_value<<"\n";
                 throw SemanticException("Multiple Definition of Symbol: "+id_value);
@@ -312,6 +349,18 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
             throw SemanticException("In Type Checking, the format is not 'A = B' statement has more than "
                     "3 tokens: "+semanticStack.size());
     }
+}
+
+/*
+ * At the moment it checks the type of the class and free function in the global table. TODO Extension could be to check a member function
+ */
+bool Semantic::doesTypeOrFunctionExist(std::string& id_type)
+{
+    if(symbolTables["global"].count(id_type) == 1)
+    {
+        return true;
+    }
+    return false;
 }
 
 Semantic::~Semantic()
