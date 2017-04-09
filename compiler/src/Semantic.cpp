@@ -4,7 +4,7 @@
  *  Created on: Mar 22, 2017
  *      Author: eshinig
  */
-
+#include <CodeGenerator.h>
 #include <Exceptions.hh> // for Semantic exceptions
 #include <Semantic.h>
 #include <iomanip>
@@ -43,7 +43,10 @@ const std::vector<std::string>  Semantic::semanticActions = {
         "TERM",
         "TERMLR",
         "ARITHEXPRLR",
-        "COPY_OPERATOR"
+        "EXPR",
+        "COPY_OPERATOR",
+        "CODE_GET",
+        "CODE_PUT"
 };
 
 
@@ -80,6 +83,11 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         std::cout<<"GLOBAL TABLE CREATED\n";
         currentTable.clear();
         currentTable.push_back("global");
+        if(secondPass)
+        {
+        CodeGenerator::createSrcCodeFile("ReadWrite");
+        CodeGenerator::addDirectives();
+        }
     }
 
     /*
@@ -193,6 +201,10 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
     else if(symbolFromStack == "WRITE_VARIABLE_DIMENSION")
     {
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("variable",name));
+        if(secondPass)
+        {
+            CodeGenerator::addDBDirective();
+        }
     }
 
     else if(symbolFromStack == "CREATE_PARAMETER_DIMENSIONS")
@@ -441,6 +453,12 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("termLR",stv.tds.value));
     }
 
+    else if(symbolFromStack == "EXPR")
+    {
+        Semantic::semanticStack.pop_back();
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("EXPR",stv.tds.value));
+    }
+
     else if(symbolFromStack == "MUL_DIV_IDS")
     {
         std::string id_1;
@@ -459,6 +477,15 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         }
     }
 
+    else if(symbolFromStack == "CODE_GET" && secondPass)
+    {
+        CodeGenerator::generateCode("CODE_GET");
+    }
+
+    else if(symbolFromStack == "CODE_PUT" && secondPass)
+    {
+        CodeGenerator::generateCode("CODE_PUT");
+    }
 }
 
 /*

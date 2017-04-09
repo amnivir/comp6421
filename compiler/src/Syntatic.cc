@@ -6,6 +6,7 @@
  */
 #include "Syntatic.hh"
 #include "Semantic.h"
+#include "CodeGenerator.h"
 
 Parser::Parser()
 {
@@ -250,7 +251,7 @@ void Parser::twoPassParser()
     Semantic::currentTable.clear();
     this->copySyntaticTokenValueList();
     this->tableDrivenParserAlgorithm(true);
-
+    CodeGenerator::addHaltMergeTmpfile();
 }
 
 void Parser::copySyntaticTokenValueList()

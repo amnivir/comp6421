@@ -227,14 +227,14 @@ public:
             {22,  {"for", "(", "type", "id","COPY_ID", "assignOp","COPY_ASSIGNMENT", "expr", ";", "TYPE_CHECK","relExpr", ";",
                     "assignStat", ")", "statBlock", ";"}},        //E
                     {23, {"if", "(", "expr", ")", "then", "statBlock", "else", "statBlock", ";"}},         //Ep
-                    {24, {"get", "(", "variable", ")", ";"}},         //Ep
-                    {25,  {"put", "(", "expr", ")" ,";"}},        //T
+                    {24, {"get", "(", "variable", ")","CODE_GET",";"}},         //Ep
+                    {25,  {"put", "(", "expr", ")" ,"CODE_PUT",";"}},        //T
                     {26,  {"return", "(", "expr", ")" ,";"}},        //T
                     {27,  {"variable", "assignOp" ,"expr","TYPE_CHECK"}},        //T//T
                     {28,  {"{","N_statement","}"}},        //T
                     {29,  {"statement"}},    //Tp
                     {30,  {"EPSILON"}},              //F
-                    {31,  {"arithExpr", "expr_"}},    //F
+                    {31,  {"arithExpr", "EXPR","expr_"}},    //F
                     {32,  {"relOp", "arithExpr"}},    //F
                     {33,  {"EPSILON"}},
                     {34,  {"arithExpr", "relOp", "arithExpr"}},              //F
