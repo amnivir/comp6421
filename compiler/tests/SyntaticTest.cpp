@@ -79,7 +79,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
             "} ;"
             "float randomize ( int x [ 10 ] ) "
             "{ float y ; "
-            "return ( 10 * 9.3 ) ; "
+            "return ( y * y ) ; "
             "} ;";
 
     l.findTokenTypeAndBuildList();
@@ -121,6 +121,7 @@ TEST_F(SyntaticTest,classProgramFunctionForLexical)
             "float multiplication ( int c [ 140 ] ) "
             "{ "
             "float x ; "
+            "int k;"
             "for ( int i = 20 ; i < 40 ; i = ( k ) + 10 ) ; "
             "return ( 12 * 12.01 ) ; "
             "} ;";

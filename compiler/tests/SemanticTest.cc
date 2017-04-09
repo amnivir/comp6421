@@ -34,7 +34,6 @@ public:
     void TearDown()
     {
         Semantic::currentTable.clear();
-        Semantic::nonTerminalSymValue.clear();
         Semantic::symbolTables.clear();
         Semantic::semanticStack.clear();
     }
@@ -587,15 +586,204 @@ TEST_F(SemanticTest,SymbolTableTypeNotDefined)
     l.printTokenDataStruct();
 
     /*
-     * Check the Lexical Analyzer, token list should have 132 tokens
+     * Check the Lexical Analyzer, token list should have 109tokens
      */
     EXPECT_EQ(109,l.tokenList.size());
 
     Parser p(l.getTokenDSList());
 
-    //Parser Input contains 132 tokens + '$' as 133th token
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
-    //Start parsing
+    //Start parsing.. exception is thrown as MyClass2 is not defined
     EXPECT_THROW(p.twoPassParser(),SemanticException);
+}
+
+
+TEST_F(SemanticTest,TypeCheckingAssignmentFunctionPositive)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; x = square ( x ) ; }; "
+            "int square ( int x ){ return (x*x); };";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     */
+    EXPECT_EQ(40,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //Parser Input contains 40 tokens + '$' as 41st token
+    EXPECT_EQ(41,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.twoPassParser());
+}
+
+TEST_F(SemanticTest,TypeCheckingAssignmentFunctionNegative)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; x = cube ( x ) ; }; "
+            "int square ( int x ){ return (x*x); };";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     */
+    EXPECT_EQ(40,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //Parser Input contains 40 tokens + '$' as 41st token
+    EXPECT_EQ(41,p.inputSemanticValue.size());
+    //
+    //    // based on grammar
+    EXPECT_EQ(p.productions.size(), 93);
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
+}
+
+TEST_F(SemanticTest,TypeCheckingComplexExpression)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int y; int z;"
+            "x = y + z ; }; ";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     */
+    EXPECT_EQ(29,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //Parser Input contains 40 tokens + '$' as 41st token
+    EXPECT_EQ(30,p.inputSemanticValue.size());
+    //
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.twoPassParser());
+}
+
+TEST_F(SemanticTest,TypeCheckingComplexExpression2)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int y; int z;"
+            "x = y * z + z; }; ";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     */
+    EXPECT_EQ(31,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //Parser Input contains 40 tokens + '$' as 41st token
+    EXPECT_EQ(32,p.inputSemanticValue.size());
+    //
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.twoPassParser());
+}
+
+TEST_F(SemanticTest,TypeCheckingComplexExpressionNegative)
+{
+    Lex l;
+    l.currentCharIndex = 0;
+    //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
+    l.rawToken =
+            "class MyClass1 "
+            "{"
+            "};"
+            "class MyClass2 "
+            "{"
+            "};"
+            "program { int x ; int y; float z;"
+            "x = y + z ; }; ";
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    //    /*
+    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     */
+    EXPECT_EQ(31,l.tokenList.size());
+    //
+    //    /*
+    //     * Send the tokens from Lex to Parser
+    //     */
+    Parser p(l.getTokenDSList());
+    //
+    //    //Parser Input contains 40 tokens + '$' as 41st token
+    EXPECT_EQ(32,p.inputSemanticValue.size());
+    //
+
+    //Start Parsing and semantic EXCEPTION should be thrown as
+    //variable x is defined twice in program function
+    EXPECT_NO_THROW(p.twoPassParser());
 }

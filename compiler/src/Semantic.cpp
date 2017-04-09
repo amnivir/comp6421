@@ -17,8 +17,8 @@
  */
 std::vector<std::string> Semantic::currentTable = {};
 std::map < std::string, std::map<std::string, SymbolInfo>  > Semantic::symbolTables = {};
-std::map <std::string,std::string> Semantic::nonTerminalSymValue = {};
 std::vector < std::pair<std::string, std::string> > Semantic::semanticStack = {};
+std::string Semantic::m_operator = "";
 
 
 const std::vector<std::string>  Semantic::semanticActions = {
@@ -36,7 +36,14 @@ const std::vector<std::string>  Semantic::semanticActions = {
         "CREATE_VARIABLE_DIMENSIONS",
         "END_FUNCTION",
         "COPY_ASSIGNMENT",// '='
-        "TYPE_CHECK" // performs type checking through symbol table
+        "TYPE_CHECK", // performs type checking through symbol table, only valid in sexond pass
+        "ADD_SUB_IDS",
+        "MUL_DIV_IDS",
+        "FACTOR_",
+        "TERM",
+        "TERMLR",
+        "ARITHEXPRLR",
+        "COPY_OPERATOR"
 };
 
 
@@ -175,6 +182,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
          * FloatOrInt--> Float / Int, so bypass FloatOrInt i.e. type -->Float/Int
          */
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("id",name));
+        std::cout<<"Variable = id\n";
     }
 
     else if(symbolFromStack == "WRITE_PARAMETER_DIMENSION")
@@ -289,7 +297,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
                 {
                     if(!doesTypeOrFunctionExist(id_type))
                     {
-                        throw SemanticException(+"Type not defined: "+id_type);
+                        throw SemanticException(+"Type not defined: "+id_type);//TODO make a list
                     }
                 }
             }
@@ -332,23 +340,125 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("assignment","="));
     }
 
-    else if(symbolFromStack == "TYPE_CHECK")
+    else if(symbolFromStack == "TYPE_CHECK" && secondPass)
     {
         std::cout<<"PerformTypeChecking";
         if(Semantic::semanticStack.size() == 3)
         {
             std::string right = Semantic::semanticStack.back().second;
+            std::string rightFirst = Semantic::semanticStack.back().first;
             Semantic::semanticStack.pop_back(); //pop "rvalue"
             Semantic::semanticStack.pop_back(); //pop "="
             std::string left = Semantic::semanticStack.back().second;
             Semantic::semanticStack.pop_back(); //pop "lvalue"
-            if(!Semantic::isTypesEqualInAssignment(left,right))
+
+            /*
+             * if right contains as expression, then type checking is not required
+             * as it is already checked
+             */
+            if(rightFirst == "arithExprLR")
+            {
+                return;
+            }
+
+            if( !Semantic::isTypesEqual(left,right) )
                 throw SemanticException("Types not equal");
         }
+        //TODO: this needs to be defined what could less than 3
+        else if (Semantic::semanticStack.size() < 3)
+            return;
         else
             throw SemanticException("In Type Checking, the format is not 'A = B' statement has more than "
                     "3 tokens: "+semanticStack.size());
     }
+
+    else if(symbolFromStack == "ADD_SUB_IDS")
+    {
+        std::string id_1;
+        std::string id_2;
+        std::string idAfterOperator;
+        std::string result;
+        std::cout<<"ADD_SUB_IDS\n";
+        id_1 = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        id_2 = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        result = id_2 + m_operator + id_1;
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",result));
+        //TYPE checking: rvalue.type + rv
+        //id_2 is an expression, so fetch the last id
+         std::size_t found = id_2.find_last_of("/*-+");
+         idAfterOperator = id_2.substr(found+1) ;
+
+        if(!Semantic::isTypesEqual(id_1,idAfterOperator))
+        {
+            throw SemanticException("Types not equal in expression:");
+        }
+    }
+
+    else if(symbolFromStack == "FACTOR_")
+    {
+        std::cout<<"FACTOR_\n";
+        if(Semantic::semanticStack.back().first!="arithExprLR")
+            Semantic::semanticStack.pop_back();
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("factor",stv.tds.value));
+    }
+
+    else if(symbolFromStack == "TERMLR")
+    {
+        std::cout<<"TERMLR\n";
+
+        if(Semantic::semanticStack.back().first!="TERMLR")
+            return;
+
+        if(Semantic::semanticStack.back().first!="arithExprLR")
+            Semantic::semanticStack.pop_back();
+
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("term",stv.tds.value));
+    }
+
+    else if(symbolFromStack == "ARITHEXPRLR")
+    {
+        std::string expr;
+        std::cout<<"ARITHEXPRLR\n";
+        expr = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+
+//        if(Semantic::semanticStack.back().first!="arithExprLR")
+//            Semantic::semanticStack.pop_back();
+
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",expr));
+    }
+
+    else if(symbolFromStack == "COPY_OPERATOR")
+    {
+        Semantic::m_operator = stv.tds.value;
+    }
+
+    else if(symbolFromStack == "TERM")
+    {
+        Semantic::semanticStack.pop_back();
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("termLR",stv.tds.value));
+    }
+
+    else if(symbolFromStack == "MUL_DIV_IDS")
+    {
+        std::string id_1;
+        std::string id_2;
+        std::string result;
+        std::cout<<"MUL_DIV_IDS\n";
+        id_1 = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        id_2 = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        result = id_2 + m_operator + id_1;
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",result));
+        if(!Semantic::isTypesEqual(id_1,id_2))
+        {
+            throw SemanticException("Types not equal in expression:");
+        }
+    }
+
 }
 
 /*
@@ -404,7 +514,7 @@ void Semantic::printSemanticStack()
     }
 }
 
-bool Semantic::isTypesEqualInAssignment(const std::string left, const std::string right)
+bool Semantic::isTypesEqual(const std::string left, const std::string right)
 {
 
     std::vector<std::string> tmp;

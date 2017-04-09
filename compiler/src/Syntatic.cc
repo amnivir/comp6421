@@ -160,7 +160,7 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
     while(stackInverseDerivation.back()!="$")
     {
         //std::cout<<"Token= "<<token<<std::endl;
-        printDerivation();
+        //        printDerivation();
         printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
         //std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
@@ -177,6 +177,11 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
             Semantic::performAction(symbolFromStack,previousToken,secondPass);
         }
 
+        else if(symbolFromStack == "EPSILON")
+        {
+            stackInverseDerivation.pop_back();
+
+        }
         //non terminal
         else
         {
@@ -189,21 +194,21 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
                 std::list<std::string> tmpSymbolsWithoutSemanticActions; //Use to reverse
-                //std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
+                std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
                 myfile << symbolFromStack << "   ->   " ;
                 for(auto symbol : productions.find(rule)->second)
                 {
-                    //std::cout<<symbol<<"   ";
+                    std::cout<<symbol<<"   ";
                     myfile << symbol<<"   " ;
                     tmpSymbols.push_back(symbol);
                     //Do not put semantic actions into derivation
                     if(std::find(Semantic::semanticActions.begin(), Semantic::semanticActions.end(),
-                            symbol) == Semantic::semanticActions.end())
+                            symbol) == Semantic::semanticActions.end() && symbol != "EPSILON")
                     {
                         tmpSymbolsWithoutSemanticActions.push_back(symbol);
                     }
                 }
-                //std::cout<<std::endl;
+                std::cout<<std::endl;
                 myfile << std::endl;
                 stackInverseDerivation.pop_back();
                 it = std::find(derivation.begin(), derivation.end(), symbolFromStack);
@@ -238,13 +243,13 @@ void Parser::twoPassParser()
     /**
      * in second pass, verify symbol table and it should not thrown any exception
      */
-        Semantic::semanticStack.clear();
-        //Semantic::symbolTables.clear();
-        this->stackInverseDerivation.clear();
-        this->derivation.clear();
-        Semantic::currentTable.clear();
-        this->copySyntaticTokenValueList();
-        this->tableDrivenParserAlgorithm(true);
+    Semantic::semanticStack.clear();
+    //Semantic::symbolTables.clear();
+    this->stackInverseDerivation.clear();
+    this->derivation.clear();
+    Semantic::currentTable.clear();
+    this->copySyntaticTokenValueList();
+    this->tableDrivenParserAlgorithm(true);
 
 }
 

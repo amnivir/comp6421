@@ -224,7 +224,7 @@ public:
             {19,  {"statementNoID"}},              //F
             {20,  {"assignmentStatment"}},
             {21,  {"variable", "assignOp", "COPY_ASSIGNMENT","expr", ";" ,"TYPE_CHECK"}},              //F
-            {22,  {"for", "(", "type", "id", "assignOp","COPY_ASSIGNMENT", "expr", ";", "TYPE_CHECK","relExpr", ";",
+            {22,  {"for", "(", "type", "id","COPY_ID", "assignOp","COPY_ASSIGNMENT", "expr", ";", "TYPE_CHECK","relExpr", ";",
                     "assignStat", ")", "statBlock", ";"}},        //E
                     {23, {"if", "(", "expr", ")", "then", "statBlock", "else", "statBlock", ";"}},         //Ep
                     {24, {"get", "(", "variable", ")", ";"}},         //Ep
@@ -238,14 +238,14 @@ public:
                     {32,  {"relOp", "arithExpr"}},    //F
                     {33,  {"EPSILON"}},
                     {34,  {"arithExpr", "relOp", "arithExpr"}},              //F
-                    {35,  {"term", "arithExprLR"}},        //E
-                    {36,  {"addOp", "term", "arithExprLR"}},//Ep
+                    {35,  {"term", "ARITHEXPRLR","arithExprLR"}},        //E
+                    {36,  {"addOp", "term","ADD_SUB_IDS" ,"arithExprLR"}},//Ep
                     {37,  {"EPSILON"}},              //F
                     {38, {"+"}},    //Ep
                     {39,  {"-"}},        //T
-                    {40, {"factor", "termLR"}},         //Tp
-                    {41, {"multiOp", "factor", "termLR"}},    //Tp
-                    {42,  {"EPSILON"}},
+                    {40, {"factor", "TERM", "termLR"}},         //Tp
+                    {41, {"multiOp", "factor","MUL_DIV_IDS", "termLR"}},    //Tp
+                    {42,  {"TERMLR","EPSILON"}},
                     {43,  {"(", "arithExpr", ")"}},    //F
                     {44,  {"floatValue"}},
                     {45,  {"intValue"}},
@@ -256,8 +256,8 @@ public:
                     {50,  {"idnest_","N_idnest" }},        //E
                     {51,  {"EPSILON"}},        //T
                     {52,  {".","id","N_indice"}},        //T
-                    {53,  {"(","aParams",")"}},
-                    {54,  {"EPSILON"}},        //T//E
+                    {53,  {"(","TYPE_CHECK","aParams",")"}},
+                    {54,  {"FACTOR_","EPSILON"}},        //T//E
                     {55, { "[", "arithExpr", "]"}},         //Tp
                     {56, {"[", "intValue","COPY_ARRAY_SIZE" ,"]"}},    //Tp
                     {57,  {"id","COPY_TYPE"}},              //F
@@ -291,11 +291,11 @@ public:
                     {85,  {"=="}},        //E
                     {86, {">"}},         //Ep
                     {87, {">="}},    //Ep
-                    {88,  {"+"}},        //T
-                    {89, {"-"}},         //Tp
+                    {88,  {"+","COPY_OPERATOR"}},        //T
+                    {89, {"-","COPY_OPERATOR"}},         //Tp
                     {90, {"or"}},    //Tp
-                    {91,  {"*"}},    //F
-                    {92,  {"/"}},              //F
+                    {91,  {"*","COPY_OPERATOR"}},    //F
+                    {92,  {"/","COPY_OPERATOR"}},              //F
                     {93,  {"and"}},              //F
     };
 

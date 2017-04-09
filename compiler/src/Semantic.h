@@ -46,7 +46,7 @@ public:
     /*
      * check types during assignment operation through symbol table, i.e if A = B, then check type of A is equal to B
      */
-    static bool isTypesEqualInAssignment(const std::string left, const std::string right);
+    static bool isTypesEqual(const std::string left, const std::string right);
     /**
      * This is stack of the tables created during the creation of Symbol table
      */
@@ -58,19 +58,21 @@ public:
      */
     static std::map < std::string, std::map<std::string, SymbolInfo>  > symbolTables ;
 
-    /*
-     * non terminal symbol values, to be used in Semantic analysis
-     */
-    static std::map <std::string,std::string> nonTerminalSymValue;
 
     /*
      * This is a semantic stack that where attributes are gathered and propagated across tree node
      * Since this is a map the insertion order is not maintained so Vector is used in conjunction
+     * This stack is used for building symbol table. TODO merge this with semanticStackExpr
      */
-    //static std::map<std::string,std::string> semanticStack;
-    //static std::vector<std::string,std::string> sdemanticStack;
     static std::vector < std::pair<std::string, std::string> > semanticStack;
     //v.push_back(std::pair<std::string,std::string>("y","2"));
+
+    static std::vector < std::pair<std::string, SyntaticTokenValue> > semanticStackExpr;
+
+    /*
+     * Copy operator : + , - , * , /
+     */
+    static std::string m_operator;
 
     /*
      * Print all the symbol tables
