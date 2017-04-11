@@ -7,6 +7,7 @@
 #include "Syntatic.hh"
 #include "Semantic.h"
 #include "CodeGenerator.h"
+#include "Exceptions.hh"
 
 Parser::Parser(std::string fileName)
 {
@@ -149,6 +150,21 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
     stackInverseDerivation.pop_back();
 }
 
+void Parser::errorRecovery(int code,std::string &token,std::string &previousToken)
+{
+    if (code == POP_CODE)
+    {
+        //      std::cout<<"ERROR: Missing token: "<<previousToken<<std::endl;
+        stackInverseDerivation.pop_back();
+    }
+
+    else if(code == SCAN_CODE)
+    {
+        std::cout<<"ERROR: Missing token before : "<<token<<std::endl;
+        inputSemanticValue.pop_front();
+        token=inputSemanticValue.front().syntacticValue;
+    }
+}
 
 void Parser::tableDrivenParserAlgorithm(bool secondPass)
 {
@@ -163,17 +179,19 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
     token = inputSemanticValue.front().syntacticValue;
 
     SyntaticTokenValue previousToken;
+    std::string previosTokenValue;
 
     while(stackInverseDerivation.back()!="$")
     {
-        std::cout<<"Token= "<<token<<std::endl;
-                printDerivation();
-        printInverseDerivation();
+        //std::cout<<"Token= "<<token<<std::endl;
+        //printDerivation();
+        //printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
-        std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
+        //std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
         if( isTerminal(symbolFromStack))
         {
             previousToken = inputSemanticValue.front();
+            previosTokenValue = inputSemanticValue.front().tds.value;
             parseTerminalSymbol(symbolFromStack, token);
             //else skip error
         }
@@ -194,17 +212,17 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
             int row = nonTerminalSymbolsMap[symbolFromStack];
             int column = terminalSymbolsMap.find(token)->second;
             int rule = parseTable[row][column];
-            std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
-            if( rule < ERROR_CODE) //
+            //std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
+            if( rule <= ERROR_CODE && rule > 0) //
             {
                 std::list<std::string>::iterator it;
                 std::list<std::string> tmpSymbols; //Use to reverse
                 std::list<std::string> tmpSymbolsWithoutSemanticActions; //Use to reverse
-                std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
+                //std::cout<< "Used Rule:  "<< symbolFromStack << " -> ";
                 myfile << symbolFromStack << "   ->   " ;
                 for(auto symbol : productions.find(rule)->second)
                 {
-                    std::cout<<symbol<<"   ";
+                    //std::cout<<symbol<<"   ";
                     myfile << symbol<<"   " ;
                     tmpSymbols.push_back(symbol);
                     //Do not put semantic actions into derivation
@@ -214,7 +232,7 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
                         tmpSymbolsWithoutSemanticActions.push_back(symbol);
                     }
                 }
-                std::cout<<std::endl;
+                //std::cout<<std::endl;
                 myfile << std::endl;
                 stackInverseDerivation.pop_back();
                 it = std::find(derivation.begin(), derivation.end(), symbolFromStack);
@@ -230,6 +248,15 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
                     stackInverseDerivation.push_back(symbol);
                 }
             }
+            else if (rule == SCAN_CODE || rule == POP_CODE)
+            {
+                parsing = false;
+                errorRecovery(rule,token,previosTokenValue);
+            }
+            else if( rule == 0)
+            {
+                throw SemanticException("No CFG Rule found!");
+            }
         }
     }
     myfile.close();
@@ -242,21 +269,40 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
 
 void Parser::twoPassParser()
 {
-    /**
+
+    try
+    {
+        /**
      * in first pass, build symbol table and it should not thrown any exception
      */
     this->tableDrivenParserAlgorithm(false);
-    /**
-     * in second pass, verify symbol table and it should not thrown any exception
-     */
+
+    if(!parsing)
+    {
+        throw SyntaticException("");
+    }
+
     Semantic::semanticStack.clear();
     //Semantic::symbolTables.clear();
     this->stackInverseDerivation.clear();
     this->derivation.clear();
     Semantic::currentTable.clear();
     this->copySyntaticTokenValueList();
+
+    /**
+     * in second pass, verify symbol table and it should not throw any exception
+     */
     this->tableDrivenParserAlgorithm(true);
     CodeGenerator::finalizeCodeGeneration();
+    }
+    catch ( SemanticException& e )
+    {
+        throw SemanticException(e.what());
+    }
+    catch ( SyntaticException& e )
+    {
+        throw SyntaticException(e.what());
+    }
 }
 
 void Parser::copySyntaticTokenValueList()

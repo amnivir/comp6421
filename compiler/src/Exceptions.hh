@@ -15,3 +15,11 @@ struct SemanticException : public std::exception
    ~SemanticException() throw () {}
    const char* what() const throw() { return s.c_str(); }
 };
+
+struct SyntaticException : public std::exception
+{
+   std::string s;
+   SyntaticException(std::string ss) : s(ss) {}
+   ~SyntaticException() throw () {}
+   const char* what() const throw() { return s.c_str(); }
+};

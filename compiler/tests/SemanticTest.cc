@@ -597,6 +597,31 @@ TEST_F(SemanticTest,SymbolTableTypeNotDefined)
     EXPECT_THROW(p.twoPassParser(),SemanticException);
 }
 
+TEST_F(SemanticTest,MultipleFunctionDefined)
+{
+    Lex l("MultipleFunctionDefined");
+    l.currentCharIndex = 0;
+    l.rawToken =
+            "class MyClass1 "
+            "{ "
+            "};"
+            "program { int m1; m1 = m1 + m2 ; };"
+            "int function { };"
+            "int function { };"; // function defined twice
+
+    l.findTokenTypeAndBuildList();
+    l.printTokenDataStruct();
+
+    /*
+     * Check the Lexical Analyzer, token list should have 18tokens
+     */
+    EXPECT_EQ(28,l.tokenList.size());
+
+    Parser p(l.getTokenDSList(),"MultipleFunctionDefined");
+
+    //Start parsing.. exception is thrown as m2 is not defined
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
+}
 
 TEST_F(SemanticTest,TypeCheckingAssignmentFunctionPositive)
 {
@@ -763,26 +788,26 @@ TEST_F(SemanticTest,TypeCheckingComplexExpressionNegative)
             "{"
             "};"
             "program { int x ; int y; float z;"
-            "x = y + z ; }; ";
+            "x = y + z ; }; "; // float cannot be to added int
 
     l.findTokenTypeAndBuildList();
     l.printTokenDataStruct();
 
     //    /*
-    //     * Check the Lexical Analyzer, token list should have 40 tokens
+    //     * Check the Lexical Analyzer, token list should have 29 tokens
     //     */
-    EXPECT_EQ(31,l.tokenList.size());
+    EXPECT_EQ(29,l.tokenList.size());
     //
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
     Parser p(l.getTokenDSList(),"TypeCheckingComplexExpressionNegative");
     //
-    //    //Parser Input contains 40 tokens + '$' as 41st token
-    EXPECT_EQ(32,p.inputSemanticValue.size());
+    //    //Parser Input contains 29 tokens + '$' as 30th token
+    EXPECT_EQ(30,p.inputSemanticValue.size());
     //
 
     //Start Parsing and semantic EXCEPTION should be thrown as
-    //variable x is defined twice in program function
-    EXPECT_NO_THROW(p.twoPassParser());
+    //float cannot be to added int
+    EXPECT_THROW(p.twoPassParser(),SemanticException);
 }

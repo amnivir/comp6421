@@ -44,7 +44,11 @@ public:
     bool isTerminal(std::string& x);
 
 
-    const int ERROR_CODE = 94;// 94 and above is an error
+    const int ERROR_CODE = 93;// 94 and above is an error
+
+    const int POP_CODE = 94;//if the token is in the FOLLOW set of current non-terminal on the top of the stack
+
+    const int SCAN_CODE = 95;//scan the the token until we get one with we can resume the parse
 
     std::vector<std::string> terminalSymbols = {"class","id","{","}",";","program","(",")",".","[","]",
             "for","if","then","else","get","put","return","+","-","floatValue","intValue","not","float",
@@ -302,6 +306,10 @@ public:
     std::list <SyntaticTokenValue> inputSemanticValue;
     std::list <SyntaticTokenValue> inputSemanticValueCopy;
     void buildInputFromLex();
+    /*
+     * true if the parsing was sucessful, i.e. no errors occured otherwise false.
+     */
+    bool parsing = true;
 
 private:
     void printDerivation();
@@ -319,6 +327,11 @@ private:
      * This algorithm is based on Table driven design parser
      */
     void tableDrivenParserAlgorithm(bool secondPass);
+
+    /*
+     * Error recovery when rule is either pop or scan code
+     */
+    void errorRecovery(int code, std::string &token,std::string &previousToken);
 
     std::string fileName;
 

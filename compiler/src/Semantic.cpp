@@ -82,7 +82,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
     if(symbolFromStack == "CREATE_GLOBAL_TABLE")
     {
-        std::cout<<"GLOBAL TABLE CREATED\n";
+        //std::cout<<"GLOBAL TABLE CREATED\n";
         currentTable.clear();
         currentTable.push_back("global");
         if(secondPass)
@@ -149,6 +149,13 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
         scopedFunctionName = name;
 
+        if(!secondPass)
+        {
+            if(doesSymbolExist(currentTable.back(),scopedFunctionName))
+            {
+                throw SemanticException("Function already exist:"+scopedFunctionName);
+            }
+        }
         if(currentTable.size() >= 2)
         {
             scopedFunctionName = currentTable.back() + ":" + name;
@@ -159,6 +166,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         //create the empty class table
         symbolTables[scopedFunctionName][EMPTY] = emptySymInfo;
         currentTable.push_back(scopedFunctionName);
+
 
 
     }
@@ -192,7 +200,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
          * FloatOrInt--> Float / Int, so bypass FloatOrInt i.e. type -->Float/Int
          */
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("id",name));
-        std::cout<<"Variable = id\n";
+        //std::cout<<"Variable = id\n";
     }
 
     else if(symbolFromStack == "WRITE_PARAMETER_DIMENSION")
@@ -348,7 +356,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
     {
         if(currentTable.size() > 0)
         {
-            cout<<"Function Ended="<<currentTable.back()<<std::endl;
+            //cout<<"Function Ended="<<currentTable.back()<<std::endl;
             currentTable.pop_back();
         }
     }
@@ -360,7 +368,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
     else if(symbolFromStack == "TYPE_CHECK" && secondPass)
     {
-        std::cout<<"PerformTypeChecking";
+        //std::cout<<"PerformTypeChecking";
         if(Semantic::semanticStack.size() == 3)
         {
             std::string right = Semantic::semanticStack.back().second;
@@ -370,25 +378,29 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
             std::string left = Semantic::semanticStack.back().second;
             Semantic::semanticStack.pop_back(); //pop "lvalue"
 
-            /*
-             * if right contains as expression, then type checking is not required
-             * as it is already checked in line 388, symbolFromStack == "ADD_SUB_IDS"
-             */
+
+            if( !Semantic::isTypesEqual(left,right) )
+                throw SemanticException("Types are not equal:" + left + " has different type then" + right );
+
+
             if(rightFirst == "arithExprLR" || rightFirst == "EXPR")
             {
                 CodeGenerator::generateCodeAssignment(left,right);
                 return;
             }
+            /*
+             * if right contains as expression, then type checking is not required
+             * as it is already checked in line 388, symbolFromStack == "ADD_SUB_IDS"
+             */
 
-            if( !Semantic::isTypesEqual(left,right) )
-                throw SemanticException("Types not equal");
+
         }
         //TODO: this needs to be defined what could less than 3
         else if (Semantic::semanticStack.size() < 3)
             return;
-        else
-            throw SemanticException("In Type Checking, the format is not 'A = B' statement has more than "
-                    "3 tokens: "+semanticStack.size());
+        //        else
+        //            throw SemanticException("In Type Checking, the format is not 'A = B' statement has more than "
+        //                    "3 tokens: "+semanticStack.size());
     }
 
     else if(symbolFromStack == "ADD_SUB_IDS")
@@ -397,7 +409,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         std::string id_2;
         std::string idAfterOperator;
         std::string result;
-        std::cout<<"ADD_SUB_IDS\n";
+        //std::cout<<"ADD_SUB_IDS\n";
         id_1 = Semantic::semanticStack.back().second;
         Semantic::semanticStack.pop_back();
         id_2 = Semantic::semanticStack.back().second;
@@ -430,7 +442,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
     else if(symbolFromStack == "FACTOR_")
     {
-        std::cout<<"FACTOR_\n";
+        //std::cout<<"FACTOR_\n";
         if(Semantic::semanticStack.back().first!="arithExprLR")
             Semantic::semanticStack.pop_back();
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("factor",stv.tds.value));
@@ -438,7 +450,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
     else if(symbolFromStack == "TERMLR")
     {
-        std::cout<<"TERMLR\n";
+        //std::cout<<"TERMLR\n";
 
         if(Semantic::semanticStack.back().first!="TERMLR")
             return;
@@ -452,7 +464,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
     else if(symbolFromStack == "ARITHEXPRLR")
     {
         std::string expr;
-        std::cout<<"ARITHEXPRLR\n";
+        //std::cout<<"ARITHEXPRLR\n";
         expr = Semantic::semanticStack.back().second;
         Semantic::semanticStack.pop_back();
 
@@ -490,7 +502,7 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         std::string id_1;
         std::string id_2;
         std::string result;
-        std::cout<<"MUL_DIV_IDS\n";
+        //std::cout<<"MUL_DIV_IDS\n";
         id_1 = Semantic::semanticStack.back().second;
         Semantic::semanticStack.pop_back();
         id_2 = Semantic::semanticStack.back().second;
@@ -574,11 +586,29 @@ void Semantic::printSemanticStack()
     }
 }
 
-bool Semantic::isTypesEqual(const std::string left, const std::string right)
+bool Semantic::isTypesEqual( std::string left, std::string right)
 {
 
     std::vector<std::string> tmp;
     tmp = currentTable;
+
+    /*
+     * TODO if right is a real number then change the type to float
+     * refactor this ugly fix
+     */
+    if(std::all_of(left.begin(), left.end(), ::isdigit) || std::all_of(right.begin(), right.end(), ::isdigit))
+    {
+            return true;
+    }
+
+    /*
+     * TODO if the symbol is created by Codegenerator ignore it
+     */
+    if(left.at(0) == 't' || right.at(0) == 't' )
+    {
+        return true;
+    }
+
     do
     {
         for (std::vector<std::string>::reverse_iterator  it = currentTable.rbegin() ; it != currentTable.rend(); ++it)

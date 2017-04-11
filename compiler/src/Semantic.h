@@ -46,7 +46,7 @@ public:
     /*
      * check types during assignment operation through symbol table, i.e if A = B, then check type of A is equal to B
      */
-    static bool isTypesEqual(const std::string left, const std::string right);
+    static bool isTypesEqual(std::string left, std::string right);
     /**
      * This is stack of the tables created during the creation of Symbol table
      */
