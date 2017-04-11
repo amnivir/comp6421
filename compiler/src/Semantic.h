@@ -81,6 +81,7 @@ public:
 
     static void printSemanticStack();
 
+    static std::string outputFileName;
     virtual ~Semantic();
 };
 

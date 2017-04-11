@@ -19,6 +19,7 @@ std::vector<std::string> Semantic::currentTable = {};
 std::map < std::string, std::map<std::string, SymbolInfo>  > Semantic::symbolTables = {};
 std::vector < std::pair<std::string, std::string> > Semantic::semanticStack = {};
 std::string Semantic::m_operator = "";
+std::string Semantic::outputFileName="";
 
 
 const std::vector<std::string>  Semantic::semanticActions = {
@@ -40,6 +41,7 @@ const std::vector<std::string>  Semantic::semanticActions = {
         "ADD_SUB_IDS",
         "MUL_DIV_IDS",
         "FACTOR_",
+        "FACTOR_VALUE",
         "TERM",
         "TERMLR",
         "ARITHEXPRLR",
@@ -85,8 +87,8 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         currentTable.push_back("global");
         if(secondPass)
         {
-        CodeGenerator::createSrcCodeFile("ReadWrite");
-        CodeGenerator::addDirectives();
+            CodeGenerator::createSrcCodeFile("ReadWrite");
+            CodeGenerator::addDirectives();
         }
     }
 
@@ -203,7 +205,11 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("variable",name));
         if(secondPass)
         {
-            CodeGenerator::addDBDirective();
+            /*
+             * create memory space when initialized in main program
+             */
+            if(currentTable.back() == "program")
+                CodeGenerator::addDBDirective();
         }
     }
 
@@ -366,10 +372,11 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
 
             /*
              * if right contains as expression, then type checking is not required
-             * as it is already checked
+             * as it is already checked in line 388, symbolFromStack == "ADD_SUB_IDS"
              */
-            if(rightFirst == "arithExprLR")
+            if(rightFirst == "arithExprLR" || rightFirst == "EXPR")
             {
+                CodeGenerator::generateCodeAssignment(left,right);
                 return;
             }
 
@@ -397,10 +404,23 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         Semantic::semanticStack.pop_back();
         result = id_2 + m_operator + id_1;
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",result));
+
         //TYPE checking: rvalue.type + rv
         //id_2 is an expression, so fetch the last id
-         std::size_t found = id_2.find_last_of("/*-+");
-         idAfterOperator = id_2.substr(found+1) ;
+        std::size_t found = id_2.find_last_of("/*-+");
+        idAfterOperator = id_2.substr(found+1) ;
+
+
+        /*
+         * don't check type in second pass
+         */
+        if(secondPass)
+        {
+            Semantic::semanticStack.pop_back(); // replace x = y +z to x = t
+            result = CodeGenerator::generateCodeArithmetic(id_1,id_2,m_operator);
+            Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",result));
+            return;
+        }
 
         if(!Semantic::isTypesEqual(id_1,idAfterOperator))
         {
@@ -436,8 +456,8 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         expr = Semantic::semanticStack.back().second;
         Semantic::semanticStack.pop_back();
 
-//        if(Semantic::semanticStack.back().first!="arithExprLR")
-//            Semantic::semanticStack.pop_back();
+        //        if(Semantic::semanticStack.back().first!="arithExprLR")
+        //            Semantic::semanticStack.pop_back();
 
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("arithExprLR",expr));
     }
@@ -453,10 +473,16 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
         Semantic::semanticStack.push_back(std::pair<std::string,std::string>("termLR",stv.tds.value));
     }
 
+    else if(symbolFromStack == "FACTOR_VALUE")
+    {
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("factor",stv.tds.value));
+    }
+
     else if(symbolFromStack == "EXPR")
     {
+        std::string arithExpr = Semantic::semanticStack.back().second;
         Semantic::semanticStack.pop_back();
-        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("EXPR",stv.tds.value));
+        Semantic::semanticStack.push_back(std::pair<std::string,std::string>("EXPR",arithExpr));
     }
 
     else if(symbolFromStack == "MUL_DIV_IDS")
@@ -518,18 +544,25 @@ bool Semantic::doesSymbolExist(const std::string& currentTableName, std::string&
 
 void Semantic::printSymbolTable()
 {
+    std::ofstream myfile;
+    myfile.open (Semantic::outputFileName.c_str());
     for (std::map < std::string, std::map<std::string, SymbolInfo>  >::iterator iter = symbolTables.begin();
             iter != symbolTables.end();
             ++iter)
     {
         std::cout<<"+--------------------------------"<<iter->first<<"--------------------------------------------+"<<std::endl;
+        myfile<<"+--------------------------------"<<iter->first<<"--------------------------------------------+"<<std::endl;
         std::cout<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::setw(20)<<"link"<<std::endl;
+        myfile<<std::setw(20)<<"Name"<<std::setw(20)<<"Kind"<<std::setw(20)<<"type"<<std::setw(20)<<"link"<<std::endl;
         for (auto symRecord : symbolTables.find(iter->first)->second)
         {
             std::cout<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
             <<symRecord.second.type<<std::setw(20)<<symRecord.second.link<<std::endl;
+            myfile<<std::setw(20)<<symRecord.first<<std::setw(20)<<symRecord.second.kind<<std::setw(20)
+            <<symRecord.second.type<<std::setw(20)<<symRecord.second.link<<std::endl;
         }
         std::cout<<"+-----------------------------------------------------------------------------------+"<<std::endl;
+        myfile<<"+-----------------------------------------------------------------------------------+"<<std::endl;
     }
 }
 

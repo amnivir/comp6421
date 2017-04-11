@@ -19,7 +19,6 @@
 class SemanticTest: public ::testing::Test
 {
 public:
-    Lex l;
     SyntaticTokenValue tv;
 
     SemanticTest()
@@ -42,7 +41,7 @@ public:
 
 TEST_F(SemanticTest,SymbolTableFull)
 {
-    Lex l;
+    Lex l("SymbolTableFull");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -69,7 +68,7 @@ TEST_F(SemanticTest,SymbolTableFull)
     //     */
     EXPECT_EQ(132,l.tokenList.size());
 
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTable");
 
     //Parser Input contains 132 tokens + '$' as 133th token
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
@@ -152,7 +151,7 @@ TEST_F(SemanticTest,SymbolTableFull)
 TEST_F(SemanticTest,SymbolTableGlobalFunctions)
 {
 
-    Lex l;
+    Lex l("SymbolTableGlobalFunctions");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -176,7 +175,7 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
     /*
      * Send the tokens from Lex to Parser
      */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTableGlobalFunctions");
 
     //Parser Input contains 28 tokens + '$' as 29th token
     EXPECT_EQ(p.inputSemanticValue.size(),29);
@@ -208,7 +207,7 @@ TEST_F(SemanticTest,SymbolTableGlobalFunctions)
 
 TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
 {
-    Lex l;
+    Lex l("SymbolTableCreateGlobalAndFunctionTable");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -232,7 +231,7 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
     /*
      * Send the tokens from Lex to Parser
      */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTableCreateGlobalAndFunctionTable");
 
 
     //Parser Input contains 60 tokens + '$' as 61st token
@@ -312,7 +311,7 @@ TEST_F(SemanticTest,SymbolTableCreateGlobalAndFunctionTable)
 
 TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
 {
-    Lex l;
+    Lex l("SymbolTableProgramSubFuntion");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -335,7 +334,7 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTableProgramSubFuntion");
 
 
     //Parser Input contains 39 tokens + '$' as 40th token
@@ -413,7 +412,7 @@ TEST_F(SemanticTest,SymbolTableProgramSubFuntion)
 
 TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
 {
-    Lex l;
+    Lex l("SymbolTableMultipleDeclaration");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -436,7 +435,7 @@ TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTableMultipleDeclaration");
     //
     //    //Parser Input contains 46 tokens + '$' as 47th token
     EXPECT_EQ(47,p.inputSemanticValue.size());
@@ -451,7 +450,7 @@ TEST_F(SemanticTest,SymbolTableMultipleDeclaration)
 
 TEST_F(SemanticTest,TypeCheckingAssignment)
 {
-    Lex l;
+    Lex l("TypeCheckingAssignment");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -473,7 +472,7 @@ TEST_F(SemanticTest,TypeCheckingAssignment)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingAssignment");
     //
     //
     //    //Parser Input contains 46 tokens + '$' as 47th token
@@ -490,7 +489,7 @@ TEST_F(SemanticTest,TypeCheckingAssignment)
 
 TEST_F(SemanticTest,TypeCheckingAssignmentFail)
 {
-    Lex l;
+    Lex l("TypeCheckingAssignmentFail");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -512,7 +511,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFail)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingAssignmentFail");
     //
     //
     //    //Parser Input contains 46 tokens + '$' as 47th token
@@ -528,7 +527,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFail)
 
 TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
 {
-    Lex l;
+    Lex l("TypeCheckingAssignmentNestedFunction");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -551,7 +550,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingAssignmentNestedFunction");
     //
     //    //insert '$' for the parse input
     p.inputSemanticValue.push_back(tv);
@@ -569,7 +568,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentNestedFunction)
 
 TEST_F(SemanticTest,SymbolTableTypeNotDefined)
 {
-    Lex l;
+    Lex l("SymbolTableTypeNotDefined");
     l.currentCharIndex = 0;
     l.rawToken =
             "class MyClass1 "
@@ -590,7 +589,7 @@ TEST_F(SemanticTest,SymbolTableTypeNotDefined)
      */
     EXPECT_EQ(109,l.tokenList.size());
 
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"SymbolTableTypeNotDefined");
 
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
@@ -601,7 +600,7 @@ TEST_F(SemanticTest,SymbolTableTypeNotDefined)
 
 TEST_F(SemanticTest,TypeCheckingAssignmentFunctionPositive)
 {
-    Lex l;
+    Lex l("TypeCheckingAssignmentFunctionPositive");
     l.currentCharIndex = 0;
     //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
     l.rawToken =
@@ -625,7 +624,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFunctionPositive)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingAssignmentFunctionPositive");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
     EXPECT_EQ(41,p.inputSemanticValue.size());
@@ -640,7 +639,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFunctionPositive)
 
 TEST_F(SemanticTest,TypeCheckingAssignmentFunctionNegative)
 {
-    Lex l;
+    Lex l("TypeCheckingAssignmentFunctionNegative");
     l.currentCharIndex = 0;
     //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
     l.rawToken =
@@ -664,7 +663,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFunctionNegative)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingAssignmentFunctionNegative");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
     EXPECT_EQ(41,p.inputSemanticValue.size());
@@ -679,7 +678,7 @@ TEST_F(SemanticTest,TypeCheckingAssignmentFunctionNegative)
 
 TEST_F(SemanticTest,TypeCheckingComplexExpression)
 {
-    Lex l;
+    Lex l("TypeCheckingComplexExpression");
     l.currentCharIndex = 0;
     //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
     l.rawToken =
@@ -703,7 +702,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingComplexExpression");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
     EXPECT_EQ(30,p.inputSemanticValue.size());
@@ -716,7 +715,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression)
 
 TEST_F(SemanticTest,TypeCheckingComplexExpression2)
 {
-    Lex l;
+    Lex l("TypeCheckingComplexExpression2");
     l.currentCharIndex = 0;
     //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
     l.rawToken =
@@ -740,7 +739,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression2)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingComplexExpression2");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
     EXPECT_EQ(32,p.inputSemanticValue.size());
@@ -753,7 +752,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression2)
 
 TEST_F(SemanticTest,TypeCheckingComplexExpressionNegative)
 {
-    Lex l;
+    Lex l("TypeCheckingComplexExpressionNegative");
     l.currentCharIndex = 0;
     //class id { } ; program {  id = id ( ) ; } ; id id ( ) { return intValue ; } ;
     l.rawToken =
@@ -777,7 +776,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpressionNegative)
     //    /*
     //     * Send the tokens from Lex to Parser
     //     */
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"TypeCheckingComplexExpressionNegative");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
     EXPECT_EQ(32,p.inputSemanticValue.size());

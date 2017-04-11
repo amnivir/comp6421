@@ -25,8 +25,8 @@ struct SyntaticTokenValue
 class Parser
 {
 public:
-    Parser();
-    Parser(std::list<TokenDS>);
+    Parser(std::string fileName);
+    Parser(std::list<TokenDS>,std::string fileName);
     std::list<TokenDS> tokenListFromLexicalAnalyser;//TODO make this a pointer
     /*
      * To build symbol table, two pass is required. This method calls tableDrivenParserAlgorithm
@@ -247,8 +247,8 @@ public:
                     {41, {"multiOp", "factor","MUL_DIV_IDS", "termLR"}},    //Tp
                     {42,  {"TERMLR","EPSILON"}},
                     {43,  {"(", "arithExpr", ")"}},    //F
-                    {44,  {"floatValue"}},
-                    {45,  {"intValue"}},
+                    {44,  {"floatValue","FACTOR_VALUE"}},
+                    {45,  {"intValue","FACTOR_VALUE"}},
                     {46,  {"not", "factor"}},//F
                     {47,  {"variable", "factor_"}},//F
                     {48,  {"sign", "factor"}},//F
@@ -301,6 +301,7 @@ public:
 
     std::list <SyntaticTokenValue> inputSemanticValue;
     std::list <SyntaticTokenValue> inputSemanticValueCopy;
+    void buildInputFromLex();
 
 private:
     void printDerivation();
@@ -313,12 +314,13 @@ private:
     /*
      * Reads next token from Lexical analyzer list
      */
-    void buildInputFromLex();
+
     /*
      * This algorithm is based on Table driven design parser
      */
     void tableDrivenParserAlgorithm(bool secondPass);
 
-    int currentTokenIndex;
+    std::string fileName;
+
 };
 #endif /* SRC_SYNTATIC_HH_ */

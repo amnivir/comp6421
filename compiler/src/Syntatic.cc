@@ -8,7 +8,7 @@
 #include "Semantic.h"
 #include "CodeGenerator.h"
 
-Parser::Parser()
+Parser::Parser(std::string fileName)
 {
     std::vector<std::string> sampleInput= {"class","id","{","int","id","[", "intValue","]",";","}",";",
             "program", "{", "int", "id", "[", "intValue", "]", ";",
@@ -24,15 +24,21 @@ Parser::Parser()
         tv.tds.type=NONE;
         tv.tds.value=str;
         inputSemanticValue.push_back(tv);
-        inputSemanticValueCopy.push_back(tv);//second copy
+        //inputSemanticValueCopy.push_back(tv);//second copy
     }
+
+    this->fileName = fileName + "_Syntactic.txt";
+    Semantic::outputFileName = fileName + "_Semantic.txt";
+    CodeGenerator::outputFileName = fileName + "_AssemblyCode.m";
 }
 
-Parser::Parser(std::list<TokenDS> tokenDSList)
+Parser::Parser(std::list<TokenDS> tokenDSList,std::string fileName)
 {
-    currentTokenIndex = 0;
     tokenListFromLexicalAnalyser = tokenDSList;
     this->buildInputFromLex();
+    this->fileName = fileName + "_Syntactic.txt";
+    Semantic::outputFileName = fileName + "_Semantic.txt";
+    CodeGenerator::outputFileName = fileName + "_AssemblyCode.m";
 }
 
 void Parser::buildInputFromLex()
@@ -147,7 +153,7 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
 void Parser::tableDrivenParserAlgorithm(bool secondPass)
 {
     std::ofstream myfile;
-    myfile.open ("syntatic_output.txt");
+    myfile.open (this->fileName.c_str());
     std::string token;
     //std::cout<<"No. of predictions="<<productions.size()<<std::endl;
     stackInverseDerivation.push_back("$");
@@ -160,11 +166,11 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
 
     while(stackInverseDerivation.back()!="$")
     {
-        //std::cout<<"Token= "<<token<<std::endl;
-        //        printDerivation();
+        std::cout<<"Token= "<<token<<std::endl;
+                printDerivation();
         printInverseDerivation();
         std::string symbolFromStack = stackInverseDerivation.back();
-        //std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
+        std::cout<<"Symbol From Stack=="<<symbolFromStack<<std::endl;
         if( isTerminal(symbolFromStack))
         {
             previousToken = inputSemanticValue.front();
@@ -181,7 +187,6 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
         else if(symbolFromStack == "EPSILON")
         {
             stackInverseDerivation.pop_back();
-
         }
         //non terminal
         else
@@ -189,7 +194,7 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
             int row = nonTerminalSymbolsMap[symbolFromStack];
             int column = terminalSymbolsMap.find(token)->second;
             int rule = parseTable[row][column];
-            //std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
+            std::cout<<"Row= "<<row<<"  Column= "<<column<<"  Rule= "<<rule<<std::endl;
             if( rule < ERROR_CODE) //
             {
                 std::list<std::string>::iterator it;
@@ -251,7 +256,7 @@ void Parser::twoPassParser()
     Semantic::currentTable.clear();
     this->copySyntaticTokenValueList();
     this->tableDrivenParserAlgorithm(true);
-    CodeGenerator::addHaltMergeTmpfile();
+    CodeGenerator::finalizeCodeGeneration();
 }
 
 void Parser::copySyntaticTokenValueList()

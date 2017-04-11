@@ -6,13 +6,59 @@
  */
 
 #include <LexicalAnalyzer.hh>
+#include <fstream>
+#include<boost/tokenizer.hpp>
 
-
-Lex::Lex()
+Lex::Lex(std::string outputFile)
 {
     lineNumber = 1;
     currentCharIndex = 0;
+    this->outputFileName = outputFile + "_Lexic.txt";
 }
+
+void Lex::buildTokenDSFromFile()
+{
+    using namespace std;
+    using namespace boost;
+    string line;
+    int lineNumCount = 1;
+    ifstream myfile(this->inputFileName);
+    char_separator<char> sept
+    { "" };
+    std::list<std::string> rawTokensFromInputFile;
+
+    typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+    if (myfile.is_open())
+    {
+        while (getline(myfile, line))
+        {
+            tokenizer tokens
+            { line, sept };
+            for (const auto& token : tokens)
+            {
+                Lex lex(token, lineNumCount);
+                lex.findTokenTypeAndBuildList();
+                this->tokenListDS.insert(this->tokenListDS.end(),
+                        lex.tokenListDS.begin(), lex.tokenListDS.end());
+            }
+            lineNumCount++;
+        }
+    }
+    else
+    {
+        cout << "File cannot be opened";
+    }
+}
+
+Lex::Lex(char* fileName,std::string outputFile)
+{
+    using namespace std;
+    lineNumber = 1;
+    currentCharIndex = 0;
+    this->outputFileName = outputFile;
+    this->inputFileName = fileName;
+}
+
 Lex::Lex(std::string rawToken, int lineNumber)
 {
     currentCharIndex = 0;
@@ -242,7 +288,7 @@ void Lex::printTokenDataStruct()
 void Lex::writeTokenDataStructToFile()
 {
     std::ofstream myfile;
-    myfile.open ("output.txt");
+    myfile.open (this->outputFileName.c_str());
     myfile <<"****************************************************************"<<std::endl;
     for (auto& token : tokenListDS)
     {

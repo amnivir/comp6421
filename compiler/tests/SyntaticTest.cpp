@@ -38,8 +38,8 @@ public:
 
 TEST_F(SyntaticTest,classProgramFunction)
 {
-    Parser p;
-    Lex l;
+    Parser p("classProgramFunction");
+    Lex l("classProgramFunction");
     l.currentCharIndex = 0;
     //INput list consist of following 50 tokens: NOTE:Added '$' as 50th token
     /*
@@ -69,7 +69,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
      * program { int id [ integer ] ; float id [ integer ] ; } ; //16 tokens
      * float id ( int id [ integer ] ) { float id ; return ( num * num ) ; } //22 tokens;
      */
-    Lex l;
+    Lex l("classProgramFunctionLexical");
     l.currentCharIndex = 0;
     l.rawToken = "class utility "
             "{ utility utility [ 5 ] ; } ;"
@@ -91,7 +91,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 
     l.printTokenDataStruct();
 
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"classProgramFunctionLexical");
 
    //Parser Input contains 49 tokens + '$' as 50th token
 
@@ -114,7 +114,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 TEST_F(SyntaticTest,classProgramFunctionForLexical)
 {
     //Input list consist of following 69 tokens
-    Lex l;
+    Lex l("classProgramFunctionForLexical");
     l.currentCharIndex = 0;
     l.rawToken = "class xyz { int x [ 11 ] ; } ; "
             "program { int a [ 110 ] ; float b [ 120 ] ; } ; "
@@ -135,7 +135,7 @@ TEST_F(SyntaticTest,classProgramFunctionForLexical)
 
     l.printTokenDataStruct();
 
-    Parser p(l.getTokenDSList());
+    Parser p(l.getTokenDSList(),"classProgramFunctionForLexical");
 
 
     SyntaticTokenValue tv;
