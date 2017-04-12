@@ -60,7 +60,7 @@ TEST_F(LexTest,AssignmentFloat)
     l.currentCharIndex = 0;
     l.rawToken = "a=10.001;";
     l.findTokenTypeAndBuildList();
-
+    l.printTokenDataStruct();
     std::list<TokenDS>::iterator findIter = l.tokenListDS.begin();
     std::advance(findIter,2);
     EXPECT_EQ(findIter->value,"10.001");
@@ -324,6 +324,16 @@ TEST_F(LexTest,ErrorFloat)
     l.rawToken = "int x =10.a; ";
     l.findTokenTypeAndBuildList();
     ASSERT_EQ(l.tokenList.size(), 5);
+    l.printTokenDataStruct();
+}
+
+TEST_F(LexTest,classidmember)
+{
+    Lex l("classidmember");
+    l.currentCharIndex = 0;
+    l.rawToken = "a.a; ";
+    l.findTokenTypeAndBuildList();
+    ASSERT_EQ(l.tokenList.size(), 4);
     l.printTokenDataStruct();
 }
 

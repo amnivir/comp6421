@@ -64,6 +64,11 @@ void Parser::buildInputFromLex()
             tv.syntacticValue = "id";
             //            input.push_back("id");
         }
+        else if(it->value== "." )
+        {
+            tv.syntacticValue = ".";
+            //            input.push_back("id");
+        }
 
         else if (it->type == INT_VALUE || it->type==FLOAT_VALUE )
         {
@@ -150,7 +155,7 @@ void Parser::parseTerminalSymbol(const std::string& symbol, std::string& token)
     stackInverseDerivation.pop_back();
 }
 
-void Parser::errorRecovery(int code,std::string &token,std::string &previousToken)
+void Parser::errorRecovery(int code,std::string &token,std::string &previousToken,int lineNum)
 {
     if (code == POP_CODE)
     {
@@ -160,7 +165,7 @@ void Parser::errorRecovery(int code,std::string &token,std::string &previousToke
 
     else if(code == SCAN_CODE)
     {
-        std::cout<<"ERROR: Missing token before : "<<token<<std::endl;
+        std::cout<<"ERROR: Missing token before : "<<token<<"  line:"<<lineNum<<std::endl;
         inputSemanticValue.pop_front();
         token=inputSemanticValue.front().syntacticValue;
     }
@@ -251,7 +256,7 @@ void Parser::tableDrivenParserAlgorithm(bool secondPass)
             else if (rule == SCAN_CODE || rule == POP_CODE)
             {
                 parsing = false;
-                errorRecovery(rule,token,previosTokenValue);
+                errorRecovery(rule,token,previosTokenValue,inputSemanticValue.front().tds.lineNum);
             }
             else if( rule == 0)
             {
@@ -303,6 +308,8 @@ void Parser::twoPassParser()
     {
         throw SyntaticException(e.what());
     }
+
+    std::cout<<"No Exceptions Found during parsing.. Parsing Successful!!\n";
 }
 
 void Parser::copySyntaticTokenValueList()

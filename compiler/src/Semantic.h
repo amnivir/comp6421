@@ -82,6 +82,11 @@ public:
     static void printSemanticStack();
 
     static std::string outputFileName;
+
+    /*
+     * check if the member exist in the class
+     */
+    static bool doesMemberExistInClass(std::string , std::string);
     virtual ~Semantic();
 };
 

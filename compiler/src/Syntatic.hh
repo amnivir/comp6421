@@ -259,7 +259,7 @@ public:
                     {49, {"id","COPY_ID","N_indice","N_idnest"}},         //Ep
                     {50,  {"idnest_","N_idnest" }},        //E
                     {51,  {"EPSILON"}},        //T
-                    {52,  {".","id","N_indice"}},        //T
+                    {52,  {".","id","COPY_ID","MEMBER_CHECK","N_indice"}},        //T
                     {53,  {"(","TYPE_CHECK","aParams",")"}},
                     {54,  {"FACTOR_","EPSILON"}},        //T//E
                     {55, { "[", "arithExpr", "]"}},         //Tp
@@ -331,7 +331,7 @@ private:
     /*
      * Error recovery when rule is either pop or scan code
      */
-    void errorRecovery(int code, std::string &token,std::string &previousToken);
+    void errorRecovery(int code, std::string &token,std::string &previousToken,int lineNum);
 
     std::string fileName;
 

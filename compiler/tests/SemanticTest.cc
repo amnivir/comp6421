@@ -606,8 +606,8 @@ TEST_F(SemanticTest,MultipleFunctionDefined)
             "{ "
             "};"
             "program { int m1; m1 = m1 + m2 ; };"
-            "int function { };"
-            "int function { };"; // function defined twice
+            "int function () { };"
+            "int function () { };"; // function defined twice
 
     l.findTokenTypeAndBuildList();
     l.printTokenDataStruct();
@@ -615,7 +615,7 @@ TEST_F(SemanticTest,MultipleFunctionDefined)
     /*
      * Check the Lexical Analyzer, token list should have 18tokens
      */
-    EXPECT_EQ(28,l.tokenList.size());
+    EXPECT_EQ(32,l.tokenList.size());
 
     Parser p(l.getTokenDSList(),"MultipleFunctionDefined");
 
@@ -751,7 +751,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression2)
             "{"
             "};"
             "program { int x ; int y; int z;"
-            "x = y * z + z; }; ";
+            "x = y * z + z > 0 and 0 ; }; ";
 
     l.findTokenTypeAndBuildList();
     l.printTokenDataStruct();
@@ -759,7 +759,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression2)
     //    /*
     //     * Check the Lexical Analyzer, token list should have 40 tokens
     //     */
-    EXPECT_EQ(31,l.tokenList.size());
+    EXPECT_EQ(35,l.tokenList.size());
     //
     //    /*
     //     * Send the tokens from Lex to Parser
@@ -767,7 +767,7 @@ TEST_F(SemanticTest,TypeCheckingComplexExpression2)
     Parser p(l.getTokenDSList(),"TypeCheckingComplexExpression2");
     //
     //    //Parser Input contains 40 tokens + '$' as 41st token
-    EXPECT_EQ(32,p.inputSemanticValue.size());
+    EXPECT_EQ(36,p.inputSemanticValue.size());
     //
 
     //Start Parsing and semantic EXCEPTION should be thrown as
@@ -810,4 +810,53 @@ TEST_F(SemanticTest,TypeCheckingComplexExpressionNegative)
     //Start Parsing and semantic EXCEPTION should be thrown as
     //float cannot be to added int
     EXPECT_THROW(p.twoPassParser(),SemanticException);
+}
+TEST_F(SemanticTest,ClassDataMembersAccess)
+{
+    /*
+     * this TC does not work due to lexical error. Show the tree in KFG
+     * class id { int id ; float id ; } ; program { id id ; id . id = id ; } ;
+     */
+
+    Lex l("ClassDataMembersAccess");
+    l.currentCharIndex = 0;
+    l.rawToken = "class XYZ { "
+            "                 int a [ 10 ] ;"
+            "                 int b; "
+            "                 float c;"
+            "                 int f1( int d )"
+            "                 { return ( d*d ) ; }; "
+            "                } ; "
+            "     program   {  XYZ x; "
+            "                  int y;"
+            "                  x.b = 10 ;"
+            "                  x.a[1] = 5;"
+            "                  y = x.f1( 5 ); "
+            "                  x.f = 10; "
+            "               } ; ";
+
+    l.findTokenTypeAndBuildList();
+
+    /*
+     * Check the Lexical Analyzer, token list should have 45 tokens
+     */
+    EXPECT_EQ(67,l.tokenList.size());
+
+    l.printTokenDataStruct();
+
+    Parser p(l.getTokenDSList(),"ClassDataMembersAccess");
+
+    //Parser Input contains 45 tokens + '$' as 46th token
+
+    EXPECT_EQ(68,p.inputSemanticValue.size());
+
+    //Start parsing
+    p.twoPassParser();
+
+    //At the end of parsing the STACK should have only one element i.e. $
+    EXPECT_EQ(p.stackInverseDerivation.size(),1);
+    EXPECT_EQ(p.stackInverseDerivation.front(),"$");
+
+    //At the end of parsing the Derivation stack should be equal to input
+    EXPECT_EQ(67,p.derivation.size());
 }

@@ -115,7 +115,7 @@ TEST_F(SyntaticTest,classProgramFunctionLexical)
 TEST_F(SyntaticTest,ComplexExpression)
 {
     //Input list consist of following 69 tokens
-    Lex l("classProgramFunctionForLexical");
+    Lex l("ComplexExpression");
     l.currentCharIndex = 0;
     l.rawToken = "class xyz { int x [ 11 ] ; } ; "
             "program { int a [ 110 ] ; float b [ 120 ] ; } ; "
@@ -124,16 +124,22 @@ TEST_F(SyntaticTest,ComplexExpression)
             "float x ; "
             "int i;"
             "k = 10;"
-            "for ( int i = 20 ; i < 40 ; i =  i + 10 ) ; "
+            "for ( int i = 20 ; i < 40 ; i =  i + 10 ) "
+            " i = 10 ;;"
+            " "
             "return ( x * x ) ; "
-            "} ;";
+            "} "
+            ""
+            ""
+            ""
+            ";";
 
     l.findTokenTypeAndBuildList();
 
     /*
      * Check the Lexical Analyzer, token list should have 49 tokens
      */
-    EXPECT_EQ(74,l.tokenList.size());
+    EXPECT_EQ(78,l.tokenList.size());
 
     l.printTokenDataStruct();
 
@@ -142,7 +148,7 @@ TEST_F(SyntaticTest,ComplexExpression)
 
     //Parser Input contains 74 tokens + '$' as 75th token
 
-    EXPECT_EQ(75,p.inputSemanticValue.size());
+    EXPECT_EQ(79,p.inputSemanticValue.size());
     EXPECT_EQ(p.productions.size(), 93);// based on grammer
 
 
@@ -154,7 +160,7 @@ TEST_F(SyntaticTest,ComplexExpression)
     EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input
-    EXPECT_EQ(74,p.derivation.size());
+    EXPECT_EQ(78,p.derivation.size());
 }
 
 TEST_F(SyntaticTest,ConditionalStatement)
@@ -267,7 +273,7 @@ TEST_F(SyntaticTest,ClassDataMembersAccess)
     /*
      * Check the Lexical Analyzer, token list should have 45 tokens
      */
-    EXPECT_EQ(45,l.tokenList.size());
+    EXPECT_EQ(46,l.tokenList.size());
 
     l.printTokenDataStruct();
 
@@ -275,7 +281,7 @@ TEST_F(SyntaticTest,ClassDataMembersAccess)
 
     //Parser Input contains 45 tokens + '$' as 46th token
 
-    EXPECT_EQ(46,p.inputSemanticValue.size());
+    EXPECT_EQ(47,p.inputSemanticValue.size());
 
     //Start parsing
     p.twoPassParser();
@@ -285,7 +291,7 @@ TEST_F(SyntaticTest,ClassDataMembersAccess)
     EXPECT_EQ(p.stackInverseDerivation.front(),"$");
 
     //At the end of parsing the Derivation stack should be equal to input
-    EXPECT_EQ(37,p.derivation.size());
+    EXPECT_EQ(46,p.derivation.size());
 }
 
 TEST_F(SyntaticTest,ArrayAccess)

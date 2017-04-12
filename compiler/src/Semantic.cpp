@@ -48,7 +48,8 @@ const std::vector<std::string>  Semantic::semanticActions = {
         "EXPR",
         "COPY_OPERATOR",
         "CODE_GET",
-        "CODE_PUT"
+        "CODE_PUT",
+        "MEMBER_CHECK"
 };
 
 
@@ -524,6 +525,31 @@ void Semantic::performAction(const std::string& symbolFromStack, const SyntaticT
     {
         CodeGenerator::generateCode("CODE_PUT");
     }
+
+    else if(symbolFromStack == "MEMBER_CHECK" && secondPass)
+    {
+        std::string member = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        std::string className = Semantic::semanticStack.back().second;
+        Semantic::semanticStack.pop_back();
+        if(!doesMemberExistInClass(member,className))
+        {
+            throw SemanticException("Member: "+ member + "  does not exist in Class: " + className);
+        }
+
+    }
+}
+
+/*
+ * Checks if the member exist in the class by checking into symbol table
+ */
+bool Semantic::doesMemberExistInClass(std::string member , std::string className)
+{
+    if(symbolTables[className].count(member) == 1)
+    {
+        return true;
+    }
+    return false;
 }
 
 /*
@@ -598,7 +624,7 @@ bool Semantic::isTypesEqual( std::string left, std::string right)
      */
     if(std::all_of(left.begin(), left.end(), ::isdigit) || std::all_of(right.begin(), right.end(), ::isdigit))
     {
-            return true;
+        return true;
     }
 
     /*
